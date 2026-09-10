@@ -1,0 +1,88 @@
+<%- include('../partials/header', { title: 'Patient Dashboard' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Welcome, <%= currentUser.name %></h1>
+    <p class="page-subtitle">Track your upcoming visits and healthcare consultations</p>
+  </div>
+  <a href="/patient/doctors" class="btn btn-primary btn-lg">
+    <span>➕</span> Book New Appointment
+  </a>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon accepted">📅</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.upcomingCount %></div>
+      <div class="stat-label">Upcoming Appointments</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon pending">⏳</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.pendingCount %></div>
+      <div class="stat-label">Pending Confirmation</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📑</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.totalBookings %></div>
+      <div class="stat-label">Total Visits Booked</div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Appointments Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Recent Appointments</h2>
+    <a href="/patient/appointments" class="btn btn-ghost btn-sm">View All History →</a>
+  </div>
+
+  <% if (recentAppointments && recentAppointments.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Specialization</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+          <% recentAppointments.forEach(apt => { %>
+            <tr data-appointment-id="<%= apt._id %>">
+              <td>
+                <strong>Dr. <%= apt.doctorId ? apt.doctorId.name : 'Clinic Doctor' %></strong>
+              </td>
+              <td><%= apt.specialization %></td>
+              <td><%= apt.appointmentDate %></td>
+              <td><strong><%= apt.appointmentTime %></strong></td>
+              <td>
+                <%- include('../partials/statusBadge', { status: apt.status }) %>
+              </td>
+              <td>
+                <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">Details</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 2.5rem 1rem;">
+      <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1rem;">You don't have any appointments scheduled yet.</p>
+      <a href="/patient/doctors" class="btn btn-primary">Find a Doctor & Book Now</a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

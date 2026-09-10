@@ -1,0 +1,131 @@
+<%- include('../partials/header', { title: 'Manage Appointments' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= isAdmin ? 'Clinic-Wide Appointments' : 'Doctor Appointments' %></h1>
+    <p class="page-subtitle">Review, confirm, decline, and complete clinical appointments</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 1.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <!-- Status Filter Buttons -->
+    <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+      <a href="/doctor/appointments<%= selectedDate ? '?date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'all' ? 'btn-primary' : 'btn-outline' %> btn-sm">All</a>
+      <a href="/doctor/appointments?status=pending<%= selectedDate ? '&date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'pending' ? 'btn-primary' : 'btn-outline' %> btn-sm">Pending</a>
+      <a href="/doctor/appointments?status=accepted<%= selectedDate ? '&date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'accepted' ? 'btn-primary' : 'btn-outline' %> btn-sm">Accepted</a>
+      <a href="/doctor/appointments?status=completed<%= selectedDate ? '&date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'completed' ? 'btn-primary' : 'btn-outline' %> btn-sm">Completed</a>
+      <a href="/doctor/appointments?status=rejected<%= selectedDate ? '&date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'rejected' ? 'btn-primary' : 'btn-outline' %> btn-sm">Declined</a>
+      <a href="/doctor/appointments?status=cancelled<%= selectedDate ? '&date=' + selectedDate : '' %>" class="btn <%= currentStatus === 'cancelled' ? 'btn-primary' : 'btn-outline' %> btn-sm">Cancelled</a>
+    </div>
+
+    <!-- Date Picker Form -->
+    <form action="/doctor/appointments" method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+      <% if (currentStatus !== 'all') { %>
+        <input type="hidden" name="status" value="<%= currentStatus %>">
+      <% } %>
+      <input 
+        type="date" 
+        name="date" 
+        class="form-control" 
+        style="width: 170px; padding: 0.35rem 0.6rem; font-size: 0.85rem;" 
+        value="<%= selectedDate %>"
+      >
+      <button type="submit" class="btn btn-outline btn-sm">Filter Date</button>
+      <% if (selectedDate) { %>
+        <a href="/doctor/appointments<%= currentStatus !== 'all' ? '?status=' + currentStatus : '' %>" class="btn btn-ghost btn-sm">Clear</a>
+      <% } %>
+    </form>
+  </div>
+</div>
+
+<!-- Appointments Table Card -->
+<div class="card">
+  <% if (appointments && appointments.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Patient</th>
+            <% if (isAdmin) { %><th>Doctor</th><% } %>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+          <% appointments.forEach(apt => { %>
+            <tr data-appointment-id="<%= apt._id %>">
+              <td><strong><%= apt.appointmentDate %></strong></td>
+              <td><strong><%= apt.appointmentTime %></strong></td>
+              <td>
+                <div><strong><%= apt.patientId ? apt.patientId.name : 'Unknown Patient' %></strong></div>
+                <div class="text-muted" style="font-size: 0.8rem;"><%= apt.patientId ? apt.patientId.email : '' %></div>
+              </td>
+              <% if (isAdmin) { %>
+                <td>Dr. <%= apt.doctorId ? apt.doctorId.name : 'Clinic Doctor' %></td>
+              <% } %>
+              <td>
+                <%- include('../partials/statusBadge', { status: apt.status }) %>
+              </td>
+              <td style="max-width: 160px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                <%= apt.notes || '—' %>
+              </td>
+              <td data-appointment-actions="<%= apt._id %>">
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  <% if (apt.status === 'pending') { %>
+                    <form action="/appointments/<%= apt._id %>/accept" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                    </form>
+                    <form action="/appointments/<%= apt._id %>/reject" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                  <% } else if (apt.status === 'accepted') { %>
+                    <form action="/appointments/<%= apt._id %>/complete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-accent btn-sm">Complete</button>
+                    </form>
+                  <% } %>
+
+                  <% if (apt.status === 'pending' || apt.status === 'accepted') { %>
+                    <form action="/appointments/<%= apt._id %>/cancel" method="POST" onsubmit="return confirm('Cancel this appointment and release the slot?');" style="display: inline;">
+                      <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">Cancel</button>
+                    </form>
+                  <% } %>
+
+                  <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">Details</a>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (pagination.totalPages > 1) { %>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span class="text-muted" style="font-size: 0.85rem;">
+          Showing page <%= pagination.currentPage %> of <%= pagination.totalPages %> (<%= pagination.totalCount %> appointments)
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+          <% if (pagination.currentPage > 1) { %>
+            <a href="/doctor/appointments?status=<%= currentStatus %>&date=<%= selectedDate %>&page=<%= pagination.currentPage - 1 %>" class="btn btn-outline btn-sm">← Previous</a>
+          <% } %>
+          <% if (pagination.currentPage < pagination.totalPages) { %>
+            <a href="/doctor/appointments?status=<%= currentStatus %>&date=<%= selectedDate %>&page=<%= pagination.currentPage + 1 %>" class="btn btn-outline btn-sm">Next →</a>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+
+  <% } else { %>
+    <div style="text-align: center; padding: 3rem 1rem;">
+      <p style="font-size: 1.15rem; color: var(--text-secondary);">No appointments found for the selected criteria.</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

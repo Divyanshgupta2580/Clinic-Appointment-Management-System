@@ -1,0 +1,88 @@
+<%- include('../partials/header', { title: 'Admin Overview - MediPulse Clinic' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Clinic Administration</h1>
+    <p class="page-subtitle">Central oversight for patients, physicians, and clinic operations</p>
+  </div>
+  <a href="/doctor/appointments" class="btn btn-primary">Manage All Appointments</a>
+</div>
+
+<!-- Key Clinic Metrics -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.totalPatients %></div>
+      <div class="stat-label">Registered Patients</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon accepted">🩺</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.totalDoctors %></div>
+      <div class="stat-label">Active Doctors</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">📑</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.totalAppointments %></div>
+      <div class="stat-label">Total Appointments</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon pending">⏳</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.pendingCount %></div>
+      <div class="stat-label">Pending Approval</div>
+    </div>
+  </div>
+</div>
+
+<!-- Doctors Overview Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Physician Directory</h2>
+  </div>
+
+  <% if (doctors && doctors.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Doctor Name</th>
+            <th>Email</th>
+            <th>Specialization</th>
+            <th>Qualification</th>
+            <th>Experience</th>
+            <th>Slot Length</th>
+            <th>Working Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% doctors.forEach(doc => { %>
+            <tr>
+              <td><strong>Dr. <%= doc.name %></strong></td>
+              <td><%= doc.email %></td>
+              <td><span class="badge badge-accent"><%= doc.profile ? doc.profile.specialization : 'General Practice' %></span></td>
+              <td><%= doc.profile ? doc.profile.qualification : 'MBBS' %></td>
+              <td><%= doc.profile ? doc.profile.experience : 1 %> Yrs</td>
+              <td><%= doc.profile ? doc.profile.consultationDuration : 30 %> min</td>
+              <td><%= doc.profile ? (doc.profile.availableStartTime + ' - ' + doc.profile.availableEndTime) : '09:00 - 17:00' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 2.5rem 1rem;">
+      <p class="text-muted">No doctors registered yet.</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

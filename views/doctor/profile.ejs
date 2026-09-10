@@ -1,0 +1,123 @@
+<%- include('../partials/header', { title: 'Doctor Schedule & Profile Settings' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Doctor Profile & Schedule</h1>
+    <p class="page-subtitle">Configure your consultation duration, working hours, and weekly availability</p>
+  </div>
+</div>
+
+<div class="auth-wrapper" style="padding-top: 0;">
+  <div class="card" style="width: 100%; max-width: 650px;">
+    <form action="/doctor/profile" method="POST">
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--primary);">
+        Professional Details
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="specialization" class="form-label">Specialization</label>
+          <input 
+            type="text" 
+            id="specialization" 
+            name="specialization" 
+            class="form-control" 
+            value="<%= profile.specialization %>" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="qualification" class="form-label">Qualification</label>
+          <input 
+            type="text" 
+            id="qualification" 
+            name="qualification" 
+            class="form-control" 
+            value="<%= profile.qualification %>" 
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="experience" class="form-label">Experience (Years)</label>
+          <input 
+            type="number" 
+            id="experience" 
+            name="experience" 
+            class="form-control" 
+            min="0"
+            value="<%= profile.experience %>" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="consultationDuration" class="form-label">Consultation Slot Duration</label>
+          <select id="consultationDuration" name="consultationDuration" class="form-control">
+            <option value="15" <%= profile.consultationDuration === 15 ? 'selected' : '' %>>15 minutes</option>
+            <option value="30" <%= profile.consultationDuration === 30 ? 'selected' : '' %>>30 minutes (Standard)</option>
+            <option value="45" <%= profile.consultationDuration === 45 ? 'selected' : '' %>>45 minutes</option>
+            <option value="60" <%= profile.consultationDuration === 60 ? 'selected' : '' %>>60 minutes</option>
+          </select>
+        </div>
+      </div>
+
+      <h2 style="font-size: 1.2rem; font-weight: 700; margin: 1.5rem 0 1rem 0; color: var(--primary); border-top: 1px solid var(--border-color); padding-top: 1.25rem;">
+        Weekly Working Hours & Days
+      </h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="availableStartTime" class="form-label">Daily Shift Start Time</label>
+          <input 
+            type="time" 
+            id="availableStartTime" 
+            name="availableStartTime" 
+            class="form-control" 
+            value="<%= profile.availableStartTime %>" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="availableEndTime" class="form-label">Daily Shift End Time</label>
+          <input 
+            type="time" 
+            id="availableEndTime" 
+            name="availableEndTime" 
+            class="form-control" 
+            value="<%= profile.availableEndTime %>" 
+            required
+          >
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="margin-bottom: 0.6rem;">Available Days</label>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <% const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']; %>
+          <% daysList.forEach(day => { %>
+            <label style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; cursor: pointer;">
+              <input 
+                type="checkbox" 
+                name="availableDays" 
+                value="<%= day %>" 
+                <%= profile.availableDays && profile.availableDays.includes(day) ? 'checked' : '' %>
+              >
+              <%= day %>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Save Schedule Settings</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

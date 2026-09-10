@@ -1,0 +1,55 @@
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="/" class="brand">
+      <span class="brand-icon">🏥</span>
+      <span class="brand-text">MediPulse <span class="brand-accent">Clinic</span></span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="nav-menu" id="navMenu">
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link">Home</a></li>
+
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <% if (currentUser.role === 'patient') { %>
+            <li><a href="/patient/dashboard" class="nav-link">Dashboard</a></li>
+            <li><a href="/patient/doctors" class="nav-link">Find Doctors</a></li>
+            <li><a href="/patient/appointments" class="nav-link">My Appointments</a></li>
+          <% } else if (currentUser.role === 'doctor') { %>
+            <li><a href="/doctor/dashboard" class="nav-link">Dashboard</a></li>
+            <li><a href="/doctor/appointments" class="nav-link">Appointments</a></li>
+            <li><a href="/doctor/profile" class="nav-link">My Schedule</a></li>
+          <% } else if (currentUser.role === 'admin') { %>
+            <li><a href="/admin/dashboard" class="nav-link">Admin Dashboard</a></li>
+            <li><a href="/doctor/appointments" class="nav-link">All Appointments</a></li>
+          <% } %>
+        <% } else { %>
+          <li><a href="/patient/doctors" class="nav-link">Doctors</a></li>
+        <% } %>
+      </ul>
+
+      <div class="nav-auth">
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <div class="user-chip">
+            <span class="role-badge role-<%= currentUser.role %>"><%= currentUser.role.toUpperCase() %></span>
+            <span class="user-name"><%= currentUser.name %></span>
+          </div>
+          <form action="/auth/logout" method="POST" class="inline-form">
+            <button type="submit" class="btn btn-outline btn-sm">Logout</button>
+          </form>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-ghost btn-sm">Log In</a>
+          <a href="/auth/register" class="btn btn-primary btn-sm">Register</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Live Notification Toast Container -->
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>

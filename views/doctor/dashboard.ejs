@@ -1,0 +1,99 @@
+<%- include('../partials/header', { title: 'Doctor Dashboard' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Doctor Dashboard</h1>
+    <p class="page-subtitle">Welcome Dr. <%= currentUser.name %> • Today: <%= todayStr %></p>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="/doctor/profile" class="btn btn-outline">⚙️ Manage Schedule</a>
+    <a href="/doctor/appointments" class="btn btn-primary">All Appointments</a>
+  </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon accepted">🩺</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.todayCount %></div>
+      <div class="stat-label">Scheduled For Today</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon pending">⏳</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.pendingCount %></div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon completed">✅</div>
+    <div class="stat-info">
+      <div class="stat-value"><%= stats.completedCount %></div>
+      <div class="stat-label">Total Completed Visits</div>
+    </div>
+  </div>
+</div>
+
+<!-- Today's Consultations -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Today's Schedule (<%= todayStr %>)</h2>
+    <a href="/doctor/appointments?date=<%= todayStr %>" class="btn btn-ghost btn-sm">Full Day List →</a>
+  </div>
+
+  <% if (todayAppointments && todayAppointments.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Patient</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+          <% todayAppointments.forEach(apt => { %>
+            <tr data-appointment-id="<%= apt._id %>">
+              <td><strong><%= apt.appointmentTime %></strong></td>
+              <td><strong><%= apt.patientId ? apt.patientId.name : 'Unknown Patient' %></strong></td>
+              <td><%= apt.patientId ? apt.patientId.email : '—' %></td>
+              <td>
+                <%- include('../partials/statusBadge', { status: apt.status }) %>
+              </td>
+              <td data-appointment-actions="<%= apt._id %>">
+                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                  <% if (apt.status === 'pending') { %>
+                    <form action="/appointments/<%= apt._id %>/accept" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                    </form>
+                    <form action="/appointments/<%= apt._id %>/reject" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                  <% } else if (apt.status === 'accepted') { %>
+                    <form action="/appointments/<%= apt._id %>/complete" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-accent btn-sm">Mark Complete</button>
+                    </form>
+                  <% } %>
+                  <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">Details</a>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    <div style="text-align: center; padding: 2.5rem 1rem;">
+      <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">No active consultations scheduled for today.</p>
+      <p class="text-muted">You can review upcoming patient requests in the <a href="/doctor/appointments">Appointments</a> tab.</p>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,36 @@
+{
+  "name": "clinic-appointment-management-system",
+  "version": "1.0.0",
+  "description": "Production-quality Clinic Appointment Management System with SSR EJS, MongoDB, and Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node scripts/testSlots.js && node scripts/testDoubleBooking.js && node scripts/testIntegration.js && node scripts/testSocket.js"
+  },
+  "keywords": [
+    "clinic",
+    "appointment",
+    "healthcare",
+    "express",
+    "ejs",
+    "mongodb",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^8.10.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}

@@ -1,0 +1,95 @@
+<%- include('../partials/header', { title: 'My Appointments' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Appointment History</h1>
+    <p class="page-subtitle">View your past and scheduled clinic visits</p>
+  </div>
+  <a href="/patient/doctors" class="btn btn-primary">
+    <span>➕</span> Book New Appointment
+  </a>
+</div>
+
+<!-- Status Filter Tabs -->
+<div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <a href="/patient/appointments" class="btn <%= currentStatus === 'all' ? 'btn-primary' : 'btn-outline' %> btn-sm">All</a>
+  <a href="/patient/appointments?status=pending" class="btn <%= currentStatus === 'pending' ? 'btn-primary' : 'btn-outline' %> btn-sm">Pending</a>
+  <a href="/patient/appointments?status=accepted" class="btn <%= currentStatus === 'accepted' ? 'btn-primary' : 'btn-outline' %> btn-sm">Accepted</a>
+  <a href="/patient/appointments?status=completed" class="btn <%= currentStatus === 'completed' ? 'btn-primary' : 'btn-outline' %> btn-sm">Completed</a>
+  <a href="/patient/appointments?status=rejected" class="btn <%= currentStatus === 'rejected' ? 'btn-primary' : 'btn-outline' %> btn-sm">Declined</a>
+  <a href="/patient/appointments?status=cancelled" class="btn <%= currentStatus === 'cancelled' ? 'btn-primary' : 'btn-outline' %> btn-sm">Cancelled</a>
+</div>
+
+<!-- Appointments Table Card -->
+<div class="card">
+  <% if (appointments && appointments.length > 0) { %>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Doctor</th>
+            <th>Specialization</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+          <% appointments.forEach(apt => { %>
+            <tr data-appointment-id="<%= apt._id %>">
+              <td>
+                <strong>Dr. <%= apt.doctorId ? apt.doctorId.name : 'Clinic Doctor' %></strong>
+              </td>
+              <td><%= apt.specialization %></td>
+              <td><%= apt.appointmentDate %></td>
+              <td><strong><%= apt.appointmentTime %></strong></td>
+              <td>
+                <%- include('../partials/statusBadge', { status: apt.status }) %>
+              </td>
+              <td style="max-width: 180px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                <%= apt.notes || '—' %>
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.5rem;">
+                  <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">Details</a>
+                  <% if (apt.status === 'pending' || apt.status === 'accepted') { %>
+                    <form action="/appointments/<%= apt._id %>/cancel" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" style="display: inline;">
+                      <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--danger);">Cancel</button>
+                    </form>
+                  <% } %>
+                </div>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <% if (pagination.totalPages > 1) { %>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <span class="text-muted" style="font-size: 0.85rem;">
+          Showing page <%= pagination.currentPage %> of <%= pagination.totalPages %> (<%= pagination.totalCount %> total visits)
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+          <% if (pagination.currentPage > 1) { %>
+            <a href="/patient/appointments?status=<%= currentStatus %>&page=<%= pagination.currentPage - 1 %>" class="btn btn-outline btn-sm">← Previous</a>
+          <% } %>
+          <% if (pagination.currentPage < pagination.totalPages) { %>
+            <a href="/patient/appointments?status=<%= currentStatus %>&page=<%= pagination.currentPage + 1 %>" class="btn btn-outline btn-sm">Next →</a>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+
+  <% } else { %>
+    <div style="text-align: center; padding: 3rem 1rem;">
+      <p style="font-size: 1.15rem; color: var(--text-secondary); margin-bottom: 0.75rem;">No appointments found in this category.</p>
+      <a href="/patient/doctors" class="btn btn-primary">Book an Appointment</a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

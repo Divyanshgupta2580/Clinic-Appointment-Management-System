@@ -1,0 +1,77 @@
+<%- include('./partials/header', { title: 'Welcome - MediPulse Clinic' }) %>
+
+<div style="padding: 2.5rem 0 3.5rem 0; text-align: center;">
+  <div style="display: inline-block; padding: 0.35rem 1rem; background-color: var(--primary-light); color: var(--primary-dark); border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 700; margin-bottom: 1.25rem;">
+    🏥 Next-Generation Healthcare Management
+  </div>
+  <h1 style="font-size: 2.75rem; font-weight: 800; color: var(--text-primary); line-height: 1.2; letter-spacing: -0.03em; max-width: 800px; margin: 0 auto 1rem auto;">
+    Effortless Clinic Appointments with Real-Time Precision
+  </h1>
+  <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 680px; margin: 0 auto 2rem auto; line-height: 1.6;">
+    Connecting patients and clinical specialists with guaranteed zero double-booking, live WebSocket notifications, and instant slot suggestions.
+  </p>
+
+  <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <% if (currentUser.role === 'patient') { %>
+        <a href="/patient/dashboard" class="btn btn-primary btn-lg">Go to Patient Dashboard</a>
+        <a href="/patient/doctors" class="btn btn-outline btn-lg">Browse Doctors</a>
+      <% } else if (currentUser.role === 'doctor') { %>
+        <a href="/doctor/dashboard" class="btn btn-primary btn-lg">Go to Doctor Dashboard</a>
+        <a href="/doctor/appointments" class="btn btn-outline btn-lg">Manage Appointments</a>
+      <% } else if (currentUser.role === 'admin') { %>
+        <a href="/admin/dashboard" class="btn btn-primary btn-lg">Go to Admin Dashboard</a>
+      <% } %>
+    <% } else { %>
+      <a href="/patient/doctors" class="btn btn-primary btn-lg">Find Doctors & Book</a>
+      <a href="/auth/register" class="btn btn-accent btn-lg">Create Patient Account</a>
+      <a href="/auth/login" class="btn btn-outline btn-lg">Sign In</a>
+    <% } %>
+  </div>
+</div>
+
+<!-- Architecture & Features Highlights -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 3rem;">
+  <div class="card">
+    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔒</div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Zero Double-Booking</h3>
+    <p class="text-muted" style="font-size: 0.9rem;">
+      Protected by MongoDB compound unique indexes at the database engine level, preventing race-condition conflicts even under concurrent traffic.
+    </p>
+  </div>
+
+  <div class="card">
+    <div style="font-size: 2rem; margin-bottom: 0.75rem;">⚡</div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Live WebSockets</h3>
+    <p class="text-muted" style="font-size: 0.9rem;">
+      Integrated Socket.IO delivers instant real-time alerts and dynamic status badge updates to doctors and patients without manual refreshes.
+    </p>
+  </div>
+
+  <div class="card">
+    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🧭</div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Smart Slot Suggestion</h3>
+    <p class="text-muted" style="font-size: 0.9rem;">
+      If a desired consultation slot gets taken, our smart scheduling algorithm immediately calculates and offers the next available opening.
+    </p>
+  </div>
+
+  <div class="card">
+    <div style="font-size: 2rem; margin-bottom: 0.75rem;">🛡️</div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Role-Based Security</h3>
+    <p class="text-muted" style="font-size: 0.9rem;">
+      Granular role permissions with bcrypt password hashing, secure session management, and HTTP security headers powered by Helmet.
+    </p>
+  </div>
+</div>
+
+<!-- Quick Doctor Directory Preview / CTA -->
+<div class="card" style="text-align: center; padding: 2.5rem 1.5rem; background: linear-gradient(135deg, #ffffff, #f0fdf4); border-color: #bbf7d0;">
+  <h2 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem;">Are you a Doctor joining MediPulse?</h2>
+  <p class="text-muted" style="max-width: 500px; margin: 0 auto 1.5rem auto;">
+    Register your physician profile, set your consultation hours and duration, and start receiving real-time patient appointments.
+  </p>
+  <a href="/auth/register" class="btn btn-accent btn-lg">Join as Doctor</a>
+</div>
+
+<%- include('./partials/footer') %>

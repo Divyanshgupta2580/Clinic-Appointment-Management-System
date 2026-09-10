@@ -1,0 +1,81 @@
+<%- include('../partials/header', { title: 'Find Doctors - MediPulse Clinic' }) %>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Find a Doctor</h1>
+    <p class="page-subtitle">Select a specialist and schedule your consultation</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom: 2rem;">
+  <form action="/patient/doctors" method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <div style="flex: 2; min-width: 240px;">
+      <label for="search" class="form-label">Search Doctor or Specialty</label>
+      <input 
+        type="text" 
+        id="search" 
+        name="search" 
+        class="form-control" 
+        placeholder="e.g. Cardiologist, Dr. Alice..." 
+        value="<%= searchQuery %>"
+      >
+    </div>
+
+    <div style="flex: 1; min-width: 200px;">
+      <label for="specialization" class="form-label">Specialization</label>
+      <select id="specialization" name="specialization" class="form-control">
+        <option value="">All Specializations</option>
+        <% specializations.forEach(s => { %>
+          <option value="<%= s %>" <%= selectedSpecialization === s ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-primary" style="height: 42px;">Filter</button>
+      <% if (searchQuery || selectedSpecialization) { %>
+        <a href="/patient/doctors" class="btn btn-outline" style="height: 42px;">Reset</a>
+      <% } %>
+    </div>
+  </form>
+</div>
+
+<!-- Doctor Cards Grid -->
+<% if (doctors && doctors.length > 0) { %>
+  <div class="doctors-grid">
+    <% doctors.forEach(doc => { %>
+      <div class="doctor-card">
+        <div>
+          <div class="doctor-avatar">
+            <%= doc.userId ? doc.userId.name.charAt(0).toUpperCase() : 'D' %>
+          </div>
+          <h2 class="doctor-name">Dr. <%= doc.userId ? doc.userId.name : 'Clinic Physician' %></h2>
+          <div class="doctor-spec"><%= doc.specialization %></div>
+
+          <ul class="doctor-details-list">
+            <li><strong>Qualification:</strong> <%= doc.qualification %></li>
+            <li><strong>Experience:</strong> <%= doc.experience %>+ Years</li>
+            <li><strong>Slot Duration:</strong> <%= doc.consultationDuration || 30 %> minutes</li>
+            <li><strong>Consultation Hours:</strong> <%= doc.availableStartTime %> - <%= doc.availableEndTime %></li>
+            <li><strong>Days:</strong> <%= doc.availableDays ? doc.availableDays.join(', ') : 'Mon - Fri' %></li>
+          </ul>
+        </div>
+
+        <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+          <a href="/patient/doctors/<%= doc.userId ? doc.userId._id : '' %>" class="btn btn-primary btn-block">
+            Book Appointment
+          </a>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } else { %>
+  <div class="card" style="text-align: center; padding: 3rem 1rem;">
+    <p style="font-size: 1.15rem; color: var(--text-secondary); margin-bottom: 0.5rem;">No doctors found matching your criteria.</p>
+    <p class="text-muted" style="margin-bottom: 1.5rem;">Try clearing your filters or check back shortly.</p>
+    <a href="/patient/doctors" class="btn btn-outline">Show All Doctors</a>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>
