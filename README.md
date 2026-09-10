@@ -376,7 +376,7 @@ Clinic-Appointment-Management-System/
 - **Session-Based State**: Implements `express-session` with secure cookies (`httpOnly: true`, `sameSite: 'lax'`, `secure: production`).
 - **Cryptographic Hashing**: All passwords hashed using `bcryptjs` with 10 salt rounds before storage.
 - **Zero Plain-Text Leakage**: `passwordHash` is excluded from user queries and projections.
-- **Brute-Force Mitigation**: `express-rate-limit` limits login and registration endpoints to 20 attempts per 15 minutes per IP.
+- **Brute-Force Mitigation**: `express-rate-limit` limits login and registration endpoints to 60 attempts per 15 minutes per IP.
 
 ---
 

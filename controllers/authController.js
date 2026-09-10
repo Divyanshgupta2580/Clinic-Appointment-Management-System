@@ -158,6 +158,7 @@ const postLogout = (req, res) => {
       if (err) {
         console.error('[Session] Error destroying session:', err);
       }
+      res.clearCookie('medipulse.sid');
       res.clearCookie('connect.sid');
       return res.redirect('/auth/login?success=Logged out successfully.');
     });

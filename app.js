@@ -18,6 +18,9 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 
 const app = express();
 
+// Trust reverse proxy for secure cookies in production (e.g. Render, Railway, Nginx)
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(
   helmet({

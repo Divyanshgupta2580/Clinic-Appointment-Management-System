@@ -247,10 +247,12 @@ const cancelAppointment = asyncHandler(async (req, res) => {
     .populate('patientId', 'name email')
     .populate('doctorId', 'name email');
 
+  const fallbackUrl = userRole === 'doctor' || userRole === 'admin' ? '/doctor/appointments' : '/patient/appointments';
+
   if (!appointment) {
     req.session.flash = req.session.flash || {};
     req.session.flash.error = ['Appointment record not found.'];
-    return res.status(404).redirect('back');
+    return res.status(404).redirect(req.get('Referrer') || fallbackUrl);
   }
 
   // Access check
@@ -261,13 +263,13 @@ const cancelAppointment = asyncHandler(async (req, res) => {
   if (!isPatientOwner && !isDoctorAssigned && !isAdmin) {
     req.session.flash = req.session.flash || {};
     req.session.flash.error = ['You are not authorized to cancel this appointment.'];
-    return res.status(403).redirect('back');
+    return res.status(403).redirect(req.get('Referrer') || fallbackUrl);
   }
 
   if (appointment.status === 'completed' || appointment.status === 'rejected' || appointment.status === 'cancelled') {
     req.session.flash = req.session.flash || {};
     req.session.flash.error = [`Cannot cancel an appointment that is already ${appointment.status}.`];
-    return res.status(400).redirect('back');
+    return res.status(400).redirect(req.get('Referrer') || fallbackUrl);
   }
 
   appointment.status = 'cancelled';
@@ -305,9 +307,10 @@ const getAppointmentDetails = asyncHandler(async (req, res) => {
     .lean();
 
   if (!appointment) {
-    req.session.flash = req.session.flash || {};
-    req.session.flash.error = ['Appointment not found.'];
-    return res.status(404).redirect('back');
+    return res.status(404).render('errors/404', {
+      title: '404 - Not Found',
+      path: req.originalUrl,
+    });
   }
 
   // Access check
