@@ -18,8 +18,10 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 
 const app = express();
 
-// Trust reverse proxy for secure cookies in production (e.g. Render, Railway, Nginx)
-app.set('trust proxy', 1);
+// Trust reverse proxy for secure cookies in production (e.g. Render, Railway, Nginx, Vercel)
+if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY) {
+  app.set('trust proxy', process.env.TRUST_PROXY ? (Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY) : 1);
+}
 
 // Security HTTP headers
 app.use(
@@ -39,11 +41,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Session configuration
+// Session configuration (Fail fast if SESSION_SECRET is missing)
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET is not defined in environment variables.');
+}
+
 app.use(
   session({
     name: 'medipulse.sid',
-    secret: process.env.SESSION_SECRET || 'dev_clinic_appointment_system_secret_key_2026',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -57,6 +63,14 @@ app.use(
 
 // Make session & flash data accessible to all EJS templates
 app.use(sessionLocals);
+
+// Unauthenticated health check endpoint for cloud uptime monitors & platform deployment probes
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Mount Application Routes
 app.use('/', indexRoutes);

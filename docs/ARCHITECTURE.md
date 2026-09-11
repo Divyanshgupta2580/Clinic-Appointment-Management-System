@@ -2,7 +2,7 @@
 
 ## 1. System Overview
 
-MediPulse Clinic is a full-stack, server-side rendered (SSR) web application engineered using Node.js, Express.js, EJS, MongoDB (Mongoose ODM), and Socket.IO.
+MediPulse Clinic is a clean, server-side rendered (SSR) web application engineered using **Node.js**, **Express.js**, **EJS**, and **MongoDB Atlas** (via **Mongoose ODM**).
 
 ```
                           ┌────────────────────────┐
@@ -10,15 +10,15 @@ MediPulse Clinic is a full-stack, server-side rendered (SSR) web application eng
                           │ (HTML5 / CSS3 / Vanilla)│
                           └───────────┬────────────┘
                                       │
-            HTTP/HTTPS (SSR / REST API)│ Socket.IO (WebSockets)
+                         HTTP/HTTPS (Standard GET / POST)
                                       ▼
              ┌──────────────────────────────────────────────────┐
              │            Node.js / Express.js Server           │
              ├──────────────────────────────────────────────────┤
              │ • Security: Helmet, Rate Limiter, Express-Session │
              │ • Auth: Bcrypt Password Hashing, RBAC Middleware │
-             │ • Real-time: Room-Isolated Socket.IO Broker       │
-             │ • Logic: Slot Engine & Next-Available Finder     │
+             │ • View Engine: EJS Server-Side Rendering (SSR)   │
+             │ • Scheduling: Slot Engine & Next-Slot Finder     │
              └────────────────────────┬─────────────────────────┘
                                       │
                          Mongoose ODM │ Connection Pooling
@@ -27,7 +27,7 @@ MediPulse Clinic is a full-stack, server-side rendered (SSR) web application eng
              │               MongoDB / MongoDB Atlas            │
              ├──────────────────────────────────────────────────┤
              │ • Users Collection (Email Unique Index)          │
-             │ • Doctor Profiles Collection                     │
+             │ • Doctor Profiles Collection (1-to-1 User Link)  │
              │ • Appointments Collection (Compound Unique Index)│
              │   Index: { doctorId: 1, date: 1, time: 1 }      │
              │   PartialFilter: status ∈ [pending, accepted,    │
@@ -37,7 +37,17 @@ MediPulse Clinic is a full-stack, server-side rendered (SSR) web application eng
 
 ---
 
-## 2. Server Startup Lifecycle
+## 2. Architectural Design Goals
+
+1. **Simplicity Over Complexity:** No unnecessary microservices, WebSockets, messaging queues, or stateful caching layers.
+2. **Correctness & Concurrency Control:** Zero double-booking guaranteed at the database engine level via compound unique indexing.
+3. **Defense-in-Depth Security:** Granular role-based access control, ownership validation, password hashing, secure session cookies, and HTTP security headers.
+4. **Fast Server-Side Rendering:** HTML delivered on the first byte, providing instant page rendering on mobile devices and accessible navigation without complex client JavaScript frameworks.
+5. **Transparency & Explainability:** The codebase is organized linearly so a student or developer can trace any request from the route to the database and back in minutes.
+
+---
+
+## 3. Server Startup Lifecycle
 
 The entry point of execution is `server.js`. The startup sequence proceeds through explicit phases:
 
@@ -47,156 +57,73 @@ The entry point of execution is `server.js`. The startup sequence proceeds throu
   ├── 1. require('dotenv').config()  --> Injects environment variables from .env
   ├── 2. const app = require('./app') --> Instantiates Express application & middleware stack
   ├── 3. const server = http.createServer(app) --> Wraps Express app in Node HTTP server
-  ├── 4. initSocket(server)           --> Binds Socket.IO instance to HTTP server
-  ├── 5. startServer()
-           │
-           ├── 5a. connectDB()       --> Connects to MongoDB with 5000ms selection timeout
-           └── 5b. server.listen(PORT) --> Binds port 3000 and begins accepting requests
-```
-
-### Express Middleware Order of Execution (`app.js`):
-1. `app.set('trust proxy', 1)`: Prepares Express to trust incoming proxy headers (`X-Forwarded-For`, `X-Forwarded-Proto`).
-2. `helmet()`: Sets protective HTTP security headers (disabling CSP to allow Google Fonts and client scripts).
-3. `express.urlencoded({ extended: true })`: Parses HTML form submissions (`application/x-www-form-urlencoded`).
-4. `express.json()`: Parses JSON request bodies for REST API endpoints.
-5. `express.static('public')`: Serves static assets (`/css/styles.css`, `/js/realtime.js`, `/js/booking.js`).
-6. `app.set('view engine', 'ejs')`: Registers the EJS rendering engine.
-7. `session(...)`: Configures session middleware using signed cookie `medipulse.sid`.
-8. `sessionLocals`: Injects `currentUser` and flash messages into `res.locals` so all templates have access without controller boilerplate.
-9. Route routers:
-   - `/`: `indexRoutes` (Landing page, auth aliases, slot API)
-   - `/auth`: `authRoutes` (Login, Register, Logout)
-   - `/patient`: `patientRoutes` (Dashboard, Doctor catalog, History)
-   - `/doctor`: `doctorRoutes` (Dashboard, Appointments, Schedule settings)
-   - `/admin`: `adminRoutes` (Admin metrics)
-   - `/appointments`: `appointmentRoutes` (Booking, Accept, Reject, Complete, Cancel)
-10. `notFoundHandler`: Catches unmatched routes and renders `errors/404` or returns JSON 404.
-11. `errorHandler`: Centralized error catching for unhandled errors, MongoDB validation errors, and `CastError` exceptions.
-
----
-
-## 3. Server-Client Boundary & Rendering Strategy
-
-### Server-Side Rendering (SSR) with EJS
-The application predominantly relies on SSR:
-1. Browser issues an HTTP `GET` request.
-2. Express route activates middleware (`requireAuth`, `requireRole`).
-3. Controller executes database queries via Mongoose (`lean()` read operations).
-4. Controller calls `res.render('view', data)`.
-5. Express interpolates data into the EJS template and responds with complete, semantic HTML.
-6. Browser renders HTML instantly without requiring client-side JS compilation or hydration.
-
-### Client-Side JavaScript Responsibilities
-Client-side JavaScript is strictly scoped to progressive enhancement:
-- `public/js/booking.js`:
-  - Listens for date picker changes.
-  - Asynchronously queries `/api/doctors/:id/available-slots?date=YYYY-MM-DD`.
-  - Dynamically renders interactive slot buttons (`is-taken` vs available).
-  - Updates hidden form input `#appointmentTime` upon selection.
-- `public/js/realtime.js`:
-  - Connects to Socket.IO using `window.CURRENT_USER` context injected by `header.ejs`.
-  - Listens for incoming appointment status events.
-  - Dynamically updates the table row status badge in the DOM.
-  - Displays transient toast alert notifications.
-
----
-
-## 4. Real-Time Socket.IO Architecture
-
-Socket.IO operates alongside the HTTP server using the same port (3000).
-
-```
-          [Client A: Patient]             [Client B: Doctor]
-                  │                               │
-       ws://connect (auth: userId)     ws://connect (auth: userId)
-                  │                               │
-                  ▼                               ▼
-       ┌─────────────────────────────────────────────────────┐
-       │             Socket.IO Server Broker                 │
-       │                   (sockets/socket.js)               │
-       ├─────────────────────────────────────────────────────┤
-       │ Room: user:patient_123      Room: doctor:doc_456    │
-       │ Room: role:admin                                    │
-       └─────────────────────────────────────────────────────┘
-```
-
-### Event Flow: Patient Books Appointment
-```
-1. Patient submits POST /appointments/book (HTTP)
-2. appointmentController writes appointment to MongoDB
-3. appointmentController calls emitAppointmentCreated(appointment)
-4. Socket.IO emits 'appointment:created' to rooms:
-   - 'doctor:<doctorId>'
-   - 'role:admin'
-5. Doctor's browser receives event -> Toast notification appears + Live DOM banner
-```
-
-### Event Flow: Doctor Accepts Appointment
-```
-1. Doctor submits POST /appointments/:id/accept (HTTP)
-2. appointmentController updates status = 'accepted' in MongoDB
-3. appointmentController calls emitAppointmentAccepted(appointment)
-4. Socket.IO emits 'appointment:accepted' to room:
-   - 'user:<patientId>'
-5. Patient's browser receives event -> Toast notification + Status badge changes from 'Pending Review' to 'Confirmed / Accepted' without reload
+  ├── 4. startServer()
+  │        ├── await connectDB()     --> Establishes Mongoose pool connection to MongoDB Atlas
+  │        └── server.listen(PORT)   --> Starts HTTP server listening for requests
+  └── 5. process.on('SIGINT'/'SIGTERM') --> Binds graceful shutdown handlers (closes server & DB)
 ```
 
 ---
 
-## 5. Concurrency & Data Flow: Double-Booking Prevention
+## 4. Express Middleware Pipeline (`app.js`)
+
+Requests passing through `app.js` are processed in a strict, sequential order:
 
 ```
-[Patient A Request: 10:00]          [Patient B Request: 10:00]
-            │                                   │
-   POST /appointments/book             POST /appointments/book
-            │                                   │
-            ▼                                   ▼
- appointmentController.js            appointmentController.js
-            │                                   │
-   Appointment.create(...)             Appointment.create(...)
-            │                                   │
-            └───────────────┬───────────────────┘
-                            ▼
-               ┌────────────────────────┐
-               │ MongoDB Storage Engine │
-               │ (WiredTiger B-Tree)    │
-               └────────────┬───────────┘
-                            │
-            ┌───────────────┴───────────────┐
-            ▼                               ▼
-    [First Request]                 [Second Request]
-   Index entry written              Unique index collision!
-            │                               │
-      HTTP 302 Redirect               E11000 Error Thrown
-      Success Flash Message                 │
-                                            ▼
-                              appointmentController catches E11000
-                                            │
-                              findNextAvailableSlot(...) runs
-                                            │
-                                            ▼
-                              HTTP 409 Conflict + Next Slot Suggestion
+Incoming HTTP Request
+  │
+  ├── 1. app.set('trust proxy', 1)        --> Correctly handles reverse proxies (Render, Nginx)
+  ├── 2. helmet({...})                     --> Injects security headers (XSS, Clickjacking, MIME)
+  ├── 3. express.urlencoded({extended})   --> Parses HTML form data into req.body
+  ├── 4. express.json()                    --> Parses JSON API payloads into req.body
+  ├── 5. express.static(path)             --> Serves public assets (CSS, client JS, images)
+  ├── 6. session({...})                    --> Manages secure, signed session cookies (medipulse.sid)
+  ├── 7. sessionLocals                     --> Exposes req.session.user & flash data to EJS templates
+  ├── 8. Route Handlers:
+  │        ├── app.use('/', indexRoutes)
+  │        ├── app.use('/auth', authRoutes)
+  │        ├── app.use('/patient', patientRoutes)
+  │        ├── app.use('/doctor', doctorRoutes)
+  │        ├── app.use('/admin', adminRoutes)
+  │        └── app.use('/appointments', appointmentRoutes)
+  ├── 9. notFoundHandler                  --> Catches unmatched routes, rendering 404.ejs
+  └── 10. errorHandler                   --> Centralized error handler, rendering 500.ejs
 ```
 
 ---
 
-## 6. Request Lifecycle Reference
+## 5. Request-to-Database Flow
 
-### Flow: Patient Registration
-1. **Browser**: Submits `POST /auth/register` with `name`, `email`, `password`, `role=patient`.
-2. **Middleware**:
-   - `authLimiter`: Checks IP rate limits.
-   - `validateRegister`: Validates input lengths and email regex.
-3. **Controller** (`authController.postRegister`):
-   - Queries `User.findOne({ email })` to check duplication.
-   - Calls `User.hashPassword(password)` (bcrypt 10 rounds).
-   - Calls `User.create(...)`.
-   - Initializes `req.session.user`.
-4. **Response**: HTTP 302 Redirect to `/patient/dashboard`.
+The primary application flow is:
 
-### Flow: Doctor Profile & Schedule Update
-1. **Browser**: Submits `POST /doctor/profile` with working hours and active days.
-2. **Middleware**: `requireAuth` + `requireDoctorOrAdmin`.
-3. **Controller** (`doctorController.updateProfile`):
-   - Calls `DoctorProfile.findOneAndUpdate({ userId }, updates, { upsert: true })`.
-4. **Response**: HTTP 302 Redirect to `/doctor/profile` with success flash message.
+```
+Browser
+  ↓
+Express Route
+  ↓
+Middleware (Authentication, Role, Validation)
+  ↓
+Controller (Business Logic)
+  ↓
+Mongoose Model
+  ↓
+MongoDB Atlas
+  ↓
+Controller
+  ↓
+EJS Response / HTTP Redirect
+```
+
+No unnecessary layers (DTOs, factories, service repositories, microservices) exist.
+
+---
+
+## 6. Architectural Decision on WebSockets
+
+Earlier revisions considered using WebSockets and Socket.IO. After evaluating the problem statement requirements, WebSockets were **completely removed**:
+- **Why?** A clinic appointment booking system is transactional. Patients do not need live sub-second websocket streaming; when a doctor accepts an appointment, the patient sees the updated status upon visiting their dashboard or refreshing.
+- **Benefits of Removal:**
+  - Zero open TCP socket memory overhead.
+  - Zero complex room registration, disconnect, or reconnection logic.
+  - No need for Redis pub/sub adapters when scaling across multiple server instances.
+  - Codebase is significantly simpler, easier to debug, and 100% defensible during evaluation.

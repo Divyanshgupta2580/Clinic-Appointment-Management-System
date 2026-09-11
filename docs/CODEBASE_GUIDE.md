@@ -1,200 +1,218 @@
-# Complete File-by-File Codebase Guide
+# Codebase Guide: File-by-File Breakdown
 
-This document provides a component-by-component, file-by-file architectural breakdown of MediPulse Clinic. Use this guide to navigate the code and understand how each file connects to the rest of the application.
-
----
-
-## 1. System Dependency Hierarchy
-
-```
-server.js
- ├── app.js
- │    ├── middleware/auth.js (sessionLocals)
- │    ├── middleware/errorHandler.js (notFoundHandler, errorHandler)
- │    └── routes/
- │         ├── indexRoutes.js
- │         ├── authRoutes.js
- │         ├── patientRoutes.js
- │         ├── doctorRoutes.js
- │         ├── adminRoutes.js
- │         └── appointmentRoutes.js
- ├── config/db.js (Mongoose connection pool)
- └── sockets/socket.js (Socket.IO broker)
-
-appointmentRoutes.js
- ├── middleware/auth.js (requireAuth)
- ├── middleware/role.js (requireRole, requireDoctorOrAdmin)
- ├── middleware/validation.js (validateAppointment)
- └── controllers/appointmentController.js
-      ├── models/Appointment.js (Compound unique index)
-      ├── models/User.js
-      ├── models/DoctorProfile.js
-      ├── utils/slotUtils.js (getDoctorSlotsForDate, findNextAvailableSlot)
-      └── sockets/socket.js (emitAppointmentCreated, emitAppointmentAccepted, ...)
-```
+This document provides a file-by-file reference for every active file in the MediPulse Clinic Management System. Each entry explains the **Purpose**, the **Important Part**, an **Explanation**, and **Related Files**.
 
 ---
 
-## 2. File-by-File Reference
+## 1. Core Server & Configuration
 
-### `server.js`
-- **Purpose:** Server bootstrapping, process lifecycle management, and protocol binding.
-- **Important Functions / Flow:**
-  - `http.createServer(app)`: Wraps Express application in native Node HTTP server.
-  - `initSocket(server)`: Attaches the Socket.IO instance to the HTTP server.
-  - `startServer()`: Connects to MongoDB, then starts HTTP listening on `PORT` (3000).
-  - `shutdown(signal)`: Handles `SIGTERM` and `SIGINT` for graceful connection termination.
-- **How it Connects:** Connects `app.js`, `config/db.js`, and `sockets/socket.js`.
-- **What I Should Remember:** If MongoDB fails to connect on startup, the server exits immediately with code 1 rather than serving requests with a broken database.
+### FILE: `server.js`
+- **PURPOSE:** Application entry point responsible for environment initialization, database connection, and starting the HTTP server.
+- **IMPORTANT PART:** Asynchronous startup sequence: `await connectDB()` before `server.listen(PORT)`.
+- **EXPLANATION:** Ensures the application never accepts web traffic before the MongoDB database connection is fully established. It also binds `SIGTERM` and `SIGINT` signals for graceful shutdown.
+- **RELATED FILES:** [app.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/app.js), [config/db.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/config/db.js).
 
 ---
 
-### `app.js`
-- **Purpose:** Express application setup, global middleware pipeline, and route dispatching.
-- **Important Configuration:**
-  - `app.set('trust proxy', 1)`: Configures reverse proxy header trust for cloud deployments.
-  - `helmet()`: HTTP security headers.
-  - `session(...)`: Configures session cookies (`medipulse.sid`, `httpOnly: true`).
-  - `sessionLocals`: Injects flash alerts and user state into all EJS templates.
-  - Centralized route mounting (`/`, `/auth`, `/patient`, `/doctor`, `/admin`, `/appointments`).
-- **How it Connects:** Bridges incoming HTTP requests to route handlers and error handlers.
-- **What I Should Remember:** `app.js` configures the Express app instance, while `server.js` handles networking and process signals. This separation makes testing and mocking cleaner.
+### FILE: `app.js`
+- **PURPOSE:** Express application setup, security middleware configuration, route mounting, and centralized error handling.
+- **IMPORTANT PART:** Linear Express middleware pipeline: Helmet → Body Parsers → Static Assets → Session Middleware → Route Routers → 404 Handler → Centralized Error Handler.
+- **EXPLANATION:** Configures the Express instance with EJS as the view engine, establishes cookie policies (`httpOnly: true`, `sameSite: 'lax'`), and mounts all modular routers.
+- **RELATED FILES:** [server.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/server.js), [middleware/auth.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/middleware/auth.js), [middleware/errorHandler.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/middleware/errorHandler.js).
 
 ---
 
-### `config/db.js`
-- **Purpose:** MongoDB connection management and pooling via Mongoose.
-- **Important Functions:**
-  - `connectDB()`: Connects using `process.env.MONGODB_URI` with a 5000ms server selection timeout.
-  - `closeDB()`: Closes connection on graceful shutdown or test teardown.
-- **How it Connects:** Used by `server.js` on startup and by automated test scripts.
-- **What I Should Remember:** Throws an explicit error if `MONGODB_URI` is missing from the environment.
+### FILE: `config/db.js`
+- **PURPOSE:** Establishes and manages the Mongoose connection to MongoDB Atlas.
+- **IMPORTANT PART:** Reusable singleton connection pattern using `process.env.MONGODB_URI` with error and disconnection event listeners.
+- **EXPLANATION:** Connects to MongoDB Atlas with a 5-second server selection timeout. If already connected, it returns the existing connection pool instead of opening redundant connections.
+- **RELATED FILES:** [server.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/server.js), [.env](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/.env).
 
 ---
 
-### `models/User.js`
-- **Purpose:** Represents clinic users with role-based authentication.
-- **Important Properties & Methods:**
-  - Fields: `name`, `email` (unique index), `passwordHash`, `role` (`patient`, `doctor`, `admin`).
-  - `comparePassword(candidate)`: Bcrypt comparison against stored hash.
-  - `User.hashPassword(plain)`: Static helper producing salted bcrypt hash (10 rounds).
-- **How it Connects:** Used by `authController`, `patientController`, `doctorController`, and `adminController`.
-- **What I Should Remember:** Plaintext passwords never enter database documents.
+## 2. Database Models
+
+### FILE: `models/User.js`
+- **PURPOSE:** Defines the schema and methods for all application accounts (Patients, Doctors, and Administrators).
+- **IMPORTANT PART:** Unique email constraint and password hashing helper methods (`comparePassword` and static `hashPassword`).
+- **EXPLANATION:** Stores user identity with role enum validation (`'patient'`, `'doctor'`, `'admin'`). Handles bcrypt hashing with a salt factor of 10 and constant-time password comparison.
+- **RELATED FILES:** [controllers/authController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/authController.js), [models/DoctorProfile.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/DoctorProfile.js).
 
 ---
 
-### `models/DoctorProfile.js`
-- **Purpose:** Stores doctor professional qualifications and scheduling configuration.
-- **Important Fields:**
-  - `userId`: Reference to `User` model.
-  - `specialization`, `qualification`, `experience`.
-  - `consultationDuration`: Duration of each slot (default 30 mins).
-  - `availableDays`: Array of active days (e.g. `['Monday', 'Tuesday', ...]`).
-  - `availableStartTime`, `availableEndTime`: Daily operating hours (e.g. `'09:00'`, `'17:00'`).
-- **How it Connects:** Referenced during slot generation in `utils/slotUtils.js` and populated in doctor catalogs.
-- **What I Should Remember:** Has an index on `{ specialization: 1 }` for fast filtering.
+### FILE: `models/DoctorProfile.js`
+- **PURPOSE:** Stores clinical metadata, specialization, consultation duration, and weekly schedules for doctor accounts.
+- **IMPORTANT PART:** 1-to-1 reference to `User` via `userId` with `unique: true` and weekday array validation.
+- **EXPLANATION:** Tracks medical qualification, years of practice, start/end hours (e.g., `'09:00'` to `'17:00'`), and working days of the week.
+- **RELATED FILES:** [models/User.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/User.js), [controllers/doctorController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/doctorController.js), [utils/slotUtils.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/utils/slotUtils.js).
 
 ---
 
-### `models/Appointment.js`
-- **Purpose:** Manages clinic bookings and enforces double-booking prevention.
-- **Critical Code Section:**
-  ```javascript
-  appointmentSchema.index(
-    { doctorId: 1, appointmentDate: 1, appointmentTime: 1 },
-    {
-      unique: true,
-      partialFilterExpression: {
-        status: { $in: ['pending', 'accepted', 'completed'] },
-      },
-    }
-  );
-  ```
-- **How it Connects:** Used by `appointmentController`, `patientController`, and `doctorController`.
-- **What I Should Remember:** The partial filter expression automatically releases cancelled or rejected slots so they can be rebooked, without requiring record deletion.
+### FILE: `models/Appointment.js`
+- **PURPOSE:** Stores patient-doctor appointment records, date, time slot, status, and clinical notes.
+- **IMPORTANT PART:** Compound unique index on `{ doctorId: 1, appointmentDate: 1, appointmentTime: 1 }` with a `partialFilterExpression`.
+- **EXPLANATION:** The central technical highlight. Prevents two patients from reserving the same doctor and slot at the storage engine level. The partial filter expression limits the constraint to active appointments (`pending`, `accepted`, `completed`), automatically freeing rejected and cancelled slots.
+- **RELATED FILES:** [controllers/appointmentController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/appointmentController.js), [routes/appointmentRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/appointmentRoutes.js).
 
 ---
 
-### `controllers/appointmentController.js`
-- **Purpose:** Core business logic for booking, state transitions, and concurrency conflict handling.
-- **Important Functions:**
-  - `bookAppointment`: Directly creates appointment; catches `err.code === 11000`; calls `findNextAvailableSlot` on conflict.
-  - `acceptAppointment`: Moves status from `pending` to `accepted`; notifies patient via Socket.IO.
-  - `rejectAppointment`: Moves status to `rejected`; notifies patient via Socket.IO.
-  - `completeAppointment`: Moves status from `accepted` to `completed`; notifies patient via Socket.IO.
-  - `cancelAppointment`: Cancels appointment; releases slot; notifies both parties via Socket.IO.
-  - `getAvailableSlotsApi`: Returns free vs occupied slots for dynamic client picker.
-- **How it Connects:** Triggered by `appointmentRoutes.js`, reads/writes `models/Appointment.js`, emits through `sockets/socket.js`.
-- **What I Should Remember:** Catches database duplicate key errors gracefully to suggest the next opening.
+## 3. Middleware
+
+### FILE: `middleware/auth.js`
+- **PURPOSE:** Authentication enforcement and session view helpers.
+- **IMPORTANT PART:** `requireAuth` (ensures `req.session.user` exists), `redirectIfAuthenticated` (prevents logged-in users from seeing login forms), and `sessionLocals` (injects `currentUser` and `flash` into `res.locals`).
+- **EXPLANATION:** Guarantees protected routes cannot be reached anonymously. Injects user session and one-time flash notifications into all EJS templates globally.
+- **RELATED FILES:** [app.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/app.js), [routes/patientRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/patientRoutes.js).
 
 ---
 
-### `controllers/authController.js`
-- **Purpose:** Handles registration, credential verification, session creation, and logout.
-- **Important Functions:**
-  - `postLogin`: Verifies email and bcrypt password match; stores session.
-  - `postRegister`: Checks for duplicate email; hashes password; auto-creates `DoctorProfile` if role is doctor; auto-logs in.
-  - `postLogout`: Destroys session and clears `medipulse.sid` and `connect.sid` cookies.
-- **What I Should Remember:** Auto-redirects users to their specific role dashboard upon successful authentication.
+### FILE: `middleware/role.js`
+- **PURPOSE:** Role-Based Access Control (RBAC) enforcement.
+- **IMPORTANT PART:** `requireRole(roles)` and composite helper `requireDoctorOrAdmin`.
+- **EXPLANATION:** Compares `req.session.user.role` with allowed roles. If unauthorized, halts the pipeline and renders an HTTP 403 Forbidden template or returns 403 JSON.
+- **RELATED FILES:** [middleware/auth.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/middleware/auth.js), [routes/doctorRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/doctorRoutes.js), [routes/adminRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/adminRoutes.js).
 
 ---
 
-### `controllers/patientController.js`
-- **Purpose:** Patient dashboard, doctor browsing, and personal visit history.
-- **Important Functions:**
-  - `getDashboard`: Executes counts in parallel (`Promise.all`) and loads recent visits using lean queries.
-  - `getDoctors`: Searchable directory supporting name regex and specialization dropdown filters.
-  - `getAppointments`: Paginated history table with status filtering tabs.
-- **What I Should Remember:** Uses lean queries and batching to avoid N+1 database queries.
+### FILE: `middleware/validation.js`
+- **PURPOSE:** Server-side input sanitization and format validation.
+- **IMPORTANT PART:** Regex and length assertions in `validateRegister`, `validateLogin`, and `validateAppointment`.
+- **EXPLANATION:** Rejects malformed email patterns, short passwords, invalid ObjectIds, or improper date formats before any database queries are dispatched, returning HTTP 400.
+- **RELATED FILES:** [routes/authRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/authRoutes.js), [routes/appointmentRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/appointmentRoutes.js).
 
 ---
 
-### `controllers/doctorController.js`
-- **Purpose:** Doctor daily schedule, appointment approval workflow, and availability settings.
-- **Important Functions:**
-  - `getDashboard`: Displays today's scheduled consultations and pending count.
-  - `getAppointments`: Full appointment oversight with date filter and status filter.
-  - `updateProfile`: Updates consultation length, start/end hours, and available weekdays.
-- **What I Should Remember:** If the logged-in user is an administrator, `getAppointments` displays clinic-wide records rather than filtering by a single doctor.
+### FILE: `middleware/errorHandler.js`
+- **PURPOSE:** Centralized HTTP 404 and 500 error processing.
+- **IMPORTANT PART:** `notFoundHandler` and 4-argument Express error signature `errorHandler(err, req, res, next)`.
+- **EXPLANATION:** Catches unhandled application errors, translates Mongoose `CastError` to 400 and `11000` to 409, and renders appropriate user-friendly error views (`errors/404.ejs`, `errors/500.ejs`) while suppressing internal stack traces in production.
+- **RELATED FILES:** [app.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/app.js), [utils/asyncHandler.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/utils/asyncHandler.js).
 
 ---
 
-### `utils/slotUtils.js`
-- **Purpose:** Mathematical slot generation, day-of-week calculation, and next-available-slot search engine.
-- **Important Functions:**
-  - `generateSlots(startTime, endTime, duration)`: Generates time strings (`['09:00', '09:30', ...]`).
-  - `getDayOfWeek(dateStr)`: Determines day of week using UTC date arithmetic to avoid timezone shifts.
-  - `getDoctorSlotsForDate(doctorId, dateStr)`: Computes `allSlots - occupiedSlots`.
-  - `findNextAvailableSlot(doctorId, requestedDate, requestedTime)`: Checks later slots today; if none, scans up to 7 subsequent calendar days.
-- **What I Should Remember:** Pure, deterministic utility with zero client-side dependencies.
+### FILE: `middleware/rateLimiter.js`
+- **PURPOSE:** Rate limiting on authentication routes to mitigate brute-force attacks.
+- **IMPORTANT PART:** `authLimiter` configured with a 15-minute window and 60-request threshold.
+- **EXPLANATION:** Uses `express-rate-limit` on `/login` and `/register`. If requests exceed the limit, it returns HTTP 429 Too Many Requests.
+- **RELATED FILES:** [routes/authRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/authRoutes.js), [routes/indexRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/indexRoutes.js).
 
 ---
 
-### `sockets/socket.js`
-- **Purpose:** WebSocket broker managing client room registrations and event broadcasting.
-- **Important Functions:**
-  - `initSocket(server)`: Listens for connections and client room registration (`user:<id>`, `doctor:<id>`, `role:admin`).
-  - `emitAppointmentCreated(apt)`: Alerts doctor and admin rooms.
-  - `emitAppointmentAccepted(apt)`: Alerts patient room.
-  - `emitAppointmentRejected(apt)`: Alerts patient room.
-  - `emitAppointmentCompleted(apt)`: Alerts patient room.
-  - `emitAppointmentCancelled(apt)`: Alerts patient, doctor, and admin rooms.
-- **What I Should Remember:** Never broadcasts sensitive appointment data to a global room.
+## 4. Controllers
+
+### FILE: `controllers/authController.js`
+- **PURPOSE:** Handles user registration, login authentication, and logout session teardown.
+- **IMPORTANT PART:** `postRegister` (checks email duplicate, hashes password, saves user, auto-logs in), `postLogin` (validates credentials, sets session), and `postLogout` (`req.session.destroy`).
+- **EXPLANATION:** Contains authentication workflows and role-based redirects to dashboards.
+- **RELATED FILES:** [models/User.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/User.js), [routes/authRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/authRoutes.js).
 
 ---
 
-### `public/js/realtime.js`
-- **Purpose:** Client-side Socket.IO listener updating DOM status badges and presenting toast alerts.
-- **Important Functions:**
-  - `showToast(title, message, type)`: Injects accessible, auto-dissolving notification toasts.
-  - `updateAppointmentStatusInDOM(id, status)`: Finds matching DOM table rows and flips status badges dynamically without page refresh.
-- **What I Should Remember:** Gracefully checks if Socket.IO client library and `window.CURRENT_USER` exist before initializing.
+### FILE: `controllers/appointmentController.js`
+- **PURPOSE:** Core business logic for booking, accepting, declining, completing, and canceling clinical appointments.
+- **IMPORTANT PART:** Direct `Appointment.create()` catching error `11000`, returning HTTP 409, and calculating `findNextAvailableSlot`.
+- **EXPLANATION:** Contains strict ownership authorization (patients can only cancel their own appointments; doctors can only manage appointments assigned to them). Handles status transitions (`pending` → `accepted` → `completed`).
+- **RELATED FILES:** [models/Appointment.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/Appointment.js), [utils/slotUtils.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/utils/slotUtils.js), [routes/appointmentRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/appointmentRoutes.js).
 
 ---
 
-### `public/js/booking.js`
-- **Purpose:** Client-side slot picker on doctor profile pages.
-- **Important Functions:**
-  - `loadSlots(dateStr)`: Fetches `/api/doctors/:id/available-slots?date=...` via `fetch()`.
-  - Renders slot buttons: sets `.is-taken` (disabled) or attaches click listeners that populate `#appointmentTime`.
-- **What I Should Remember:** Sets `dateInput.min` to today's date to prevent past bookings.
+### FILE: `controllers/patientController.js`
+- **PURPOSE:** Patient-facing portal logic: dashboard statistics, doctor directory, booking form views, and appointment history.
+- **IMPORTANT PART:** Optimized aggregation and batch doctor profile lookup via `$in` to eliminate N+1 queries.
+- **EXPLANATION:** Provides paginated history queries (`getAppointments`), search filters for doctors by name and specialization (`getDoctors`), and dashboard metrics (`getDashboard`).
+- **RELATED FILES:** [models/Appointment.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/Appointment.js), [models/DoctorProfile.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/DoctorProfile.js), [routes/patientRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/patientRoutes.js).
+
+---
+
+### FILE: `controllers/doctorController.js`
+- **PURPOSE:** Doctor-facing portal logic: daily appointment schedules, appointment management tables, and clinical availability settings.
+- **IMPORTANT PART:** Date-filtered and status-filtered paginated appointment retrieval with ownership scoping.
+- **EXPLANATION:** Renders doctor metrics (today's visits, pending requests, completed visits), paginated appointment lists with action buttons (`getAppointments`), and schedule update handlers (`updateProfile`).
+- **RELATED FILES:** [models/DoctorProfile.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/DoctorProfile.js), [routes/doctorRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/doctorRoutes.js).
+
+---
+
+### FILE: `controllers/adminController.js`
+- **PURPOSE:** Administrative overview across clinic operations.
+- **IMPORTANT PART:** Parallel `Promise.all` counts of clinic-wide patients, doctors, and appointment states.
+- **EXPLANATION:** Aggregates top-level clinic metrics and verified doctors list for administrators.
+- **RELATED FILES:** [models/User.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/User.js), [routes/adminRoutes.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/routes/adminRoutes.js).
+
+---
+
+## 5. Routes
+
+### FILE: `routes/indexRoutes.js`
+- **PURPOSE:** Defines root-level public endpoints: landing page (`/`), clean login/register URLs, and the public slot querying JSON API.
+- **RELATED FILES:** [app.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/app.js), [controllers/authController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/authController.js).
+
+### FILE: `routes/authRoutes.js`
+- **PURPOSE:** Authentication endpoints (`/auth/login`, `/auth/register`, `/auth/logout`) with rate limiting and validation middleware.
+- **RELATED FILES:** [controllers/authController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/authController.js), [middleware/rateLimiter.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/middleware/rateLimiter.js).
+
+### FILE: `routes/patientRoutes.js`
+- **PURPOSE:** Endpoints for patients (`/patient/dashboard`, `/patient/doctors`, `/patient/doctors/:id`, `/patient/appointments`). Protected by `requireAuth` and `requireRole('patient')`.
+- **RELATED FILES:** [controllers/patientController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/patientController.js).
+
+### FILE: `routes/doctorRoutes.js`
+- **PURPOSE:** Endpoints for doctors (`/doctor/dashboard`, `/doctor/appointments`, `/doctor/profile`). Protected by `requireAuth` and `requireDoctorOrAdmin`.
+- **RELATED FILES:** [controllers/doctorController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/doctorController.js).
+
+### FILE: `routes/adminRoutes.js`
+- **PURPOSE:** Endpoints for clinic administrators (`/admin/dashboard`). Protected by `requireAuth` and `requireRole('admin')`.
+- **RELATED FILES:** [controllers/adminController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/adminController.js).
+
+### FILE: `routes/appointmentRoutes.js`
+- **PURPOSE:** Action endpoints for appointments (`/appointments/book`, `/appointments/:id/accept`, `/appointments/:id/reject`, `/appointments/:id/complete`, `/appointments/:id/cancel`).
+- **RELATED FILES:** [controllers/appointmentController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/appointmentController.js).
+
+---
+
+## 6. Utilities
+
+### FILE: `utils/slotUtils.js`
+- **PURPOSE:** Mathematical slot generation, doctor working hours/days evaluation, and next available slot search.
+- **IMPORTANT PART:** `generateSlots(startTime, endTime, duration)` and `findNextAvailableSlot(doctorId, date, time)`.
+- **EXPLANATION:** Converts time strings into minutes for interval calculations, queries active bookings for a doctor on a given date to identify occupied slots, and iterates forward up to 7 days to recommend alternative slots.
+- **RELATED FILES:** [controllers/appointmentController.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/controllers/appointmentController.js), [scripts/testSlots.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/scripts/testSlots.js).
+
+---
+
+### FILE: `utils/asyncHandler.js`
+- **PURPOSE:** Utility wrapper for asynchronous route controllers.
+- **IMPORTANT PART:** `(fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)`.
+- **EXPLANATION:** Eliminates boilerplate `try/catch` blocks in controllers and ensures any unhandled promise rejections are reliably forwarded to the Express centralized error handler.
+- **RELATED FILES:** [middleware/errorHandler.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/middleware/errorHandler.js), all controller files.
+
+---
+
+## 7. Frontend Client Scripts & Key Views
+
+### FILE: `public/js/booking.js`
+- **PURPOSE:** Vanilla JavaScript progressive enhancement for the appointment booking form.
+- **IMPORTANT PART:** `loadSlots(dateStr)` calling `/api/doctors/:id/available-slots`.
+- **EXPLANATION:** Listens for date picker changes, fetches doctor availability asynchronously, disables occupied buttons, and updates hidden form fields before the patient clicks "Confirm & Book".
+- **RELATED FILES:** [views/patient/doctorDetails.ejs](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/views/patient/doctorDetails.ejs).
+
+---
+
+### FILE: `views/partials/header.ejs` & `views/partials/footer.ejs`
+- **PURPOSE:** Global layout wrappers providing semantic HTML5 scaffolding, Google Fonts, navbar inclusion, flash alert presentation, and closing tags.
+- **IMPORTANT PART:** Clean server-rendered HTML with zero WebSocket dependencies.
+- **RELATED FILES:** [views/partials/navbar.ejs](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/views/partials/navbar.ejs), [views/partials/flash.ejs](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/views/partials/flash.ejs).
+
+---
+
+## 8. Test Scripts
+
+### FILE: `scripts/testSlots.js`
+- **PURPOSE:** Mathematical unit tests verifying slot intervals, conversions, and weekday calculations.
+- **RELATED FILES:** [utils/slotUtils.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/utils/slotUtils.js).
+
+### FILE: `scripts/testDoubleBooking.js`
+- **PURPOSE:** Verifies the database-level compound unique index constraint by inserting concurrent duplicate bookings and asserting that error `11000` is thrown. Cleans up all test data upon completion.
+- **RELATED FILES:** [models/Appointment.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/models/Appointment.js), [utils/slotUtils.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/utils/slotUtils.js).
+
+### FILE: `scripts/testIntegration.js`
+- **PURPOSE:** Comprehensive 15-step end-to-end integration test exercising landing, auth, RBAC, appointment booking, double-booking 409 conflict, next-slot suggestions, doctor acceptance, and completion. Automatically purges all created test records at the end.
+- **RELATED FILES:** All routes, middleware, and controllers.

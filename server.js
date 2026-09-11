@@ -2,26 +2,21 @@ require('dotenv').config();
 const http = require('http');
 const app = require('./app');
 const { connectDB, closeDB } = require('./config/db');
-const { initSocket } = require('./sockets/socket');
-
 const PORT = process.env.PORT || 3000;
 
 // Create HTTP server
 const server = http.createServer(app);
-
-// Initialize Socket.IO with HTTP server
-initSocket(server);
 
 // Start server after connecting to MongoDB
 const startServer = async () => {
   try {
     await connectDB();
 
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       console.log('====================================================');
       console.log(`🏥 MediPulse Clinic Management System`);
       console.log(`🚀 Server running on port: ${PORT}`);
-      console.log(`🌐 Local URL: http://localhost:${PORT}`);
+      console.log(`🌐 Host: 0.0.0.0 (Accepts external connections)`);
       console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('====================================================');
     });

@@ -2,13 +2,6 @@ const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const DoctorProfile = require('../models/DoctorProfile');
 const { getDoctorSlotsForDate, findNextAvailableSlot } = require('../utils/slotUtils');
-const {
-  emitAppointmentCreated,
-  emitAppointmentAccepted,
-  emitAppointmentRejected,
-  emitAppointmentCompleted,
-  emitAppointmentCancelled,
-} = require('../sockets/socket');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**
@@ -29,24 +22,12 @@ const bookAppointment = asyncHandler(async (req, res) => {
 
   try {
     // Attempt database insertion directly to prevent check-then-insert race conditions
-    const appointment = await Appointment.create({
+    await Appointment.create({
       patientId,
       doctorId,
       appointmentDate,
       appointmentTime,
       notes: notes ? notes.trim() : '',
-      status: 'pending',
-    });
-
-    // Notify doctor and admins in real-time via Socket.IO
-    emitAppointmentCreated({
-      _id: appointment._id.toString(),
-      doctorId: doctor._id.toString(),
-      patientId: patientId.toString(),
-      doctorName: doctor.name,
-      patientName: req.session.user.name,
-      appointmentDate,
-      appointmentTime,
       status: 'pending',
     });
 
@@ -129,15 +110,6 @@ const acceptAppointment = asyncHandler(async (req, res) => {
   appointment.status = 'accepted';
   await appointment.save();
 
-  // Real-time notification to patient via Socket.IO
-  emitAppointmentAccepted({
-    _id: appointment._id.toString(),
-    patientId: appointment.patientId._id.toString(),
-    doctorName: appointment.doctorId.name,
-    appointmentDate: appointment.appointmentDate,
-    appointmentTime: appointment.appointmentTime,
-  });
-
   req.session.flash = req.session.flash || {};
   req.session.flash.success = [`Appointment on ${appointment.appointmentDate} at ${appointment.appointmentTime} accepted.`];
   return res.redirect('/doctor/appointments');
@@ -176,15 +148,6 @@ const rejectAppointment = asyncHandler(async (req, res) => {
   appointment.status = 'rejected';
   await appointment.save();
 
-  // Real-time notification to patient
-  emitAppointmentRejected({
-    _id: appointment._id.toString(),
-    patientId: appointment.patientId._id.toString(),
-    doctorName: appointment.doctorId.name,
-    appointmentDate: appointment.appointmentDate,
-    appointmentTime: appointment.appointmentTime,
-  });
-
   req.session.flash = req.session.flash || {};
   req.session.flash.info = [`Appointment declined. The slot has been freed up.`];
   return res.redirect('/doctor/appointments');
@@ -222,13 +185,6 @@ const completeAppointment = asyncHandler(async (req, res) => {
 
   appointment.status = 'completed';
   await appointment.save();
-
-  // Real-time notification to patient
-  emitAppointmentCompleted({
-    _id: appointment._id.toString(),
-    patientId: appointment.patientId._id.toString(),
-    doctorName: appointment.doctorId.name,
-  });
 
   req.session.flash = req.session.flash || {};
   req.session.flash.success = [`Appointment marked as completed.`];
@@ -274,15 +230,6 @@ const cancelAppointment = asyncHandler(async (req, res) => {
 
   appointment.status = 'cancelled';
   await appointment.save();
-
-  // Real-time notification
-  emitAppointmentCancelled({
-    _id: appointment._id.toString(),
-    patientId: appointment.patientId._id.toString(),
-    doctorId: appointment.doctorId._id.toString(),
-    appointmentDate: appointment.appointmentDate,
-    appointmentTime: appointment.appointmentTime,
-  });
 
   req.session.flash = req.session.flash || {};
   req.session.flash.info = ['Appointment has been cancelled and the slot is now open.'];

@@ -1,106 +1,122 @@
-# Testing & Verification Guide: MediPulse Clinic
+# Testing & Quality Assurance Documentation
 
-This document details the automated test suites, manual smoke testing procedures, assertion validations, and testing architecture of MediPulse Clinic.
+This document describes the automated test suites, execution commands, verified test results, and testing architecture for the MediPulse Clinic Management System.
 
 ---
 
-## 1. Automated Test Suite Execution
+## 1. Testing Philosophy & Zero Mock Data Policy
 
-The application comes with an automated testing pipeline configured in `package.json`:
-
-```bash
-npm test
-```
-
-This runs four standalone verification suites in sequence:
-1. `node scripts/testSlots.js`
-2. `node scripts/testDoubleBooking.js`
-3. `node scripts/testIntegration.js`
-4. `node scripts/testSocket.js`
+- **No Permanent Mock Data:** Tests do not rely on pre-seeded fake users or hard-coded test credentials.
+- **Dynamic Scaffolding:** Any required test accounts (such as a test doctor or test patient) are created inside the test script with timestamp-based unique identifiers.
+- **Automated Teardown:** Every test script cleans up all temporary records it created before exiting, guaranteeing that the database remains clean with zero residual test data.
 
 ---
 
 ## 2. Test Suite Breakdown
 
-### 2.1 Suite 1: Slot Calculation Unit Tests (`scripts/testSlots.js`)
-- **Execution Mode:** Offline (pure algorithm math, no database required).
-- **Target Functions:** `timeToMinutes`, `minutesToTime`, `generateSlots`, `getDayOfWeek` in `utils/slotUtils.js`.
-- **Assertions:**
-  1. `timeToMinutes('09:30') === 570`
-  2. `minutesToTime(570) === '09:30'`
-  3. `generateSlots('09:00', '11:00', 30)` returns exactly `['09:00', '09:30', '10:00', '10:30']`.
-  4. `generateSlots('14:00', '15:00', 15)` returns exactly `['14:00', '14:15', '14:30', '14:45']`.
-  5. `getDayOfWeek('2026-09-10') === 'Thursday'` (UTC timezone check).
-- **Result:** **PASSED (4/4 tests)**
+### 2.1. Suite 1: Slot Generation Unit Tests
+- **File:** [scripts/testSlots.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/scripts/testSlots.js)
+- **Command:** `node scripts/testSlots.js`
+- **Scope:** Pure mathematical unit verification of time conversions, slot increments, and weekday calculation.
+- **Scenarios Tested:**
+  1. `timeToMinutes('09:30')` correctly calculates 570 minutes.
+  2. `minutesToTime(570)` correctly formats `'09:30'`.
+  3. `generateSlots('09:00', '11:00', 30)` generates `['09:00', '09:30', '10:00', '10:30']`.
+  4. `generateSlots('14:00', '15:00', 15)` generates `['14:00', '14:15', '14:30', '14:45']`.
+  5. `getDayOfWeek('2026-09-10')` correctly returns `'Thursday'` using UTC calendar math without local timezone shift.
+- **Status:** PASSED (Verified)
 
 ---
 
-### 2.2 Suite 2: Double-Booking & Concurrency Test (`scripts/testDoubleBooking.js`)
-- **Execution Mode:** Database connected (`MONGODB_URI`).
-- **Target Invariant:** MongoDB Compound Unique Index `{ doctorId: 1, appointmentDate: 1, appointmentTime: 1 }`.
-- **Test Workflow:**
-  1. Connects to database and triggers `Appointment.syncIndexes()`.
-  2. Validates index existence and uniqueness flags in the WiredTiger metadata.
-  3. Creates temporary test doctor and patient IDs.
-  4. Books slot `2026-10-15` at `10:00 AM` (Succeeds).
-  5. Fires a duplicate booking attempt for the exact same slot (Simulated race condition).
-  6. **Catches `MongoServerError: E11000 duplicate key error`**.
-  7. Invokes `findNextAvailableSlot(testDoctorId, '2026-10-15', '10:00')`.
-  8. Verifies that the suggested next slot is `10:30 AM`.
-  9. Cleans up all temporary records.
-- **Result:** **PASSED**
+### 2.2. Suite 2: Database Concurrency & Double-Booking Constraint Test
+- **File:** [scripts/testDoubleBooking.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/scripts/testDoubleBooking.js)
+- **Command:** `node scripts/testDoubleBooking.js`
+- **Scope:** Verifies that MongoDB's storage engine enforces the compound unique index on `{ doctorId: 1, appointmentDate: 1, appointmentTime: 1 }` and triggers next-slot calculation.
+- **Scenarios Tested:**
+  1. Synchronizes indexes via Mongoose `syncIndexes()` and verifies that the compound unique index exists in the MongoDB engine.
+  2. Patient 1 reserves a 10:00 AM slot → Insert succeeds.
+  3. Patient 2 attempts to reserve the identical slot (simulating concurrent booking) → Caught by MongoDB engine, which throws `E11000 duplicate key error`.
+  4. Invokes `findNextAvailableSlot()` for the conflicted patient → Correctly returns the doctor's next open slot at 10:30 AM.
+  5. Deletes all temporary test records from MongoDB.
+- **Status:** PASSED (Verified)
 
 ---
 
-### 2.3 Suite 3: 15-Step End-to-End HTTP Integration Test (`scripts/testIntegration.js`)
-- **Execution Mode:** Full HTTP request pipeline against running server on `http://127.0.0.1:3000`.
-- **Steps Verified:**
-  1. `GET /` -> Returns HTTP 200 with branded landing page content.
-  2. `GET /patient/dashboard` (unauthenticated) -> Redirects to `/auth/login` (HTTP 302).
-  3. `POST /auth/login` (invalid credentials) -> Returns HTTP 401 Unauthorized.
-  4. `POST /auth/register` (Doctor) -> Creates doctor account, sets session, redirects to `/doctor/dashboard` (HTTP 302).
-  5. `GET /patient/dashboard` (as Doctor) -> Blocked by RBAC with **HTTP 403 Forbidden**.
-  6. `POST /auth/register` (Patient) -> Creates patient account, sets session, redirects to `/patient/dashboard` (HTTP 302).
-  7. `GET /doctor/dashboard` (as Patient) -> Blocked by RBAC with **HTTP 403 Forbidden**.
-  8. `GET /patient/doctors?search=...` -> Finds registered doctor in the directory.
-  9. `GET /api/doctors/:id/available-slots` -> Returns available slot array.
-  10. `POST /appointments/book` -> Books 09:00 AM slot, redirects to `/patient/appointments` (HTTP 302).
-  11. `POST /appointments/book` (Duplicate on same slot) -> Returns **HTTP 409 Conflict** with JSON payload containing `suggestedSlot`.
-  12. `GET /doctor/appointments` (as Doctor) -> Displays booked patient in list.
-  13. `POST /appointments/:id/accept` -> Updates status to `accepted` (HTTP 302).
-  14. `POST /appointments/:id/complete` -> Updates status to `completed` (HTTP 302).
-  15. `GET /appointments/:id` -> Verifies appointment detail page with "Completed" status badge.
-- **Result:** **PASSED (15/15 steps)**
+### 2.3. Suite 3: End-to-End HTTP Integration Test Suite
+- **File:** [scripts/testIntegration.js](file:///Users/apple/Desktop/Clinic-Appointment-Management-System/scripts/testIntegration.js)
+- **Command:** `node scripts/testIntegration.js`
+- **Scope:** End-to-end HTTP request testing across routes, middleware, and controllers against a live running server.
+- **15 Integration Steps Verified:**
+  1. `GET /` — Public landing page responds with HTTP 200 and branded content.
+  2. `GET /patient/dashboard` without session — Correctly redirects to `/auth/login` (HTTP 302).
+  3. `POST /auth/login` with invalid credentials — Correctly rejected with HTTP 401.
+  4. `POST /auth/register` for a Doctor — Successfully creates doctor, initializes `DoctorProfile`, and redirects to `/doctor/dashboard`.
+  5. Doctor accessing `/patient/dashboard` — Correctly blocked with HTTP 403 Forbidden (RBAC violation).
+  6. `POST /auth/register` for a Patient — Successfully registers and redirects to `/patient/dashboard`.
+  7. Patient accessing `/doctor/dashboard` — Correctly blocked with HTTP 403 Forbidden (RBAC violation).
+  8. `GET /patient/doctors?search=...` — Verified doctor appears in directory.
+  9. `GET /api/doctors/:id/available-slots` — Slots API returns 16 available consultation slots.
+  10. `POST /appointments/book` — Patient books 09:00 AM slot; appointment created with status `pending`.
+  11. `POST /appointments/book` (Duplicate Attempt) — Double booking prevented! Returns HTTP 409 Conflict with suggested next slot at 09:30 AM.
+  12. `GET /doctor/appointments` — Doctor views booked patient in appointment management list.
+  13. `POST /appointments/:id/accept` — Doctor accepts appointment; status updates to `accepted`.
+  14. `POST /appointments/:id/complete` — Doctor marks appointment as `completed`.
+  15. `GET /appointments/:id` — Appointment details verified with "Completed" status badge.
+  16. Automated Cleanup — All temporary test records purged from MongoDB.
+- **Status:** ALL 15 TESTS PASSED (Verified)
 
 ---
 
-### 2.4 Suite 4: Socket.IO Real-Time & Room Isolation Test (`scripts/testSocket.js`)
-- **Execution Mode:** WebSocket connections via `socket.io-client`.
-- **Target Invariant:** Room isolation and event propagation.
-- **Test Workflow:**
-  1. Registers doctor and patient accounts via HTTP.
-  2. Connects three distinct WebSocket clients:
-     - Doctor Client (joins `doctor:<doctorId>`)
-     - Patient Client (joins `user:<patientId>`)
-     - Stranger Client (joins `user:<strangerId>`)
-  3. Patient books appointment via HTTP -> Doctor client receives `appointment:created`. Stranger client receives **nothing**.
-  4. Doctor accepts appointment via HTTP -> Patient client receives `appointment:accepted`.
-  5. Doctor completes appointment via HTTP -> Patient client receives `appointment:completed`.
-  6. Cleans up client connections.
-- **Result:** **PASSED**
+## 3. How to Run All Tests
+
+Run all three test suites sequentially with one command:
+```bash
+npm test
+```
+
+### Expected Output Summary:
+```
+--- RUNNING SLOT UTILS UNIT TESTS ---
+✓ Time conversion tests passed
+✓ 30-min slot generation passed
+✓ 15-min slot generation passed
+✓ Day of week calculation passed
+ALL UNIT TESTS PASSED SUCCESSFULLY! 🎉
+
+====================================================
+🧪 TESTING DATABASE-LEVEL DOUBLE-BOOKING CONSTRAINT
+====================================================
+✓ Compound unique index confirmed in MongoDB engine.
+✓ Booking 1 succeeded!
+✓ SUCCESS: MongoDB E11000 Duplicate Key Error was correctly thrown by database engine!
+✓ Next available slot correctly calculated as 10:30 AM!
+🎉 ALL DOUBLE-BOOKING TESTS PASSED PERFECTLY!
+
+====================================================
+🧪 RUNNING END-TO-END HTTP INTEGRATION TESTS
+====================================================
+1. Testing GET / (Landing Page)... ✓
+2. Testing unauthenticated access... ✓
+3. Testing invalid credentials login... ✓
+4. Registering Doctor... ✓
+5. Role authorization Doctor -> Patient... ✓
+6. Registering Patient... ✓
+7. Role authorization Patient -> Doctor... ✓
+8. Fetching doctors list... ✓
+9. Testing JSON API /api/doctors/:id/available-slots... ✓
+10. Booking Appointment for 09:00 AM... ✓
+11. Duplicate booking attempt -> HTTP 409 Conflict... ✓
+12. Doctor views appointments list... ✓
+13. Doctor accepts appointment... ✓
+14. Doctor completes appointment... ✓
+15. Viewing appointment details page... ✓
+16. Cleaning up temporary test records... ✓
+🎉 ALL 15 END-TO-END INTEGRATION TESTS PASSED!
+```
 
 ---
 
-## 3. Manual Smoke Testing Script for Evaluators
+## 4. Test Limitations
 
-| Step | Action | Expected Visual Result |
-| :--- | :--- | :--- |
-| **1. Register Doctor** | Visit `/register`, select "Doctor", enter name, email, credentials, and schedule (09:00 to 17:00). | Lands on Doctor Dashboard with 0 pending visits. |
-| **2. Register Patient** | Open an incognito browser window, visit `/register`, select "Patient", submit form. | Lands on Patient Dashboard. |
-| **3. Browse & Select** | Click "Find Doctors", select the newly registered doctor, click "Book". | Doctor profile displays qualifications and schedule. |
-| **4. Choose Slot** | Select a weekday date (e.g. tomorrow). Click an available green time slot button. | Slot button highlights in purple; "Confirm & Book" enables. |
-| **5. Submit Booking** | Click "Confirm & Book Appointment". | Redirected to "My Appointments" with status "Pending Review". |
-| **6. Doctor Screen** | Switch back to Doctor window. | A real-time toast alert pops up saying "New Appointment Booked!" without page refresh. |
-| **7. Doctor Accepts** | Go to "Appointments" on Doctor window, click "Accept". | Status updates to "Confirmed / Accepted". |
-| **8. Patient Screen** | Observe Patient window. | Status badge automatically flips to green "Confirmed / Accepted" in real time. |
-| **9. Attempt Duplicate** | Open a 3rd incognito window as a different patient and try booking the exact same doctor/date/time. | Form displays conflict warning and highlights the next available opening with a direct 1-click booking link. |
+1. **Local Server Prerequisite for Integration Tests:** `scripts/testIntegration.js` runs HTTP requests against `http://127.0.0.1:3000`, requiring the Express server to be running.
+2. **Database Prerequisite:** `testDoubleBooking.js` and `testIntegration.js` require an active MongoDB connection (local or Atlas).

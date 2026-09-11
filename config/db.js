@@ -14,11 +14,12 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(uri, {
+      dbName: 'clinic_appointment_db',
       serverSelectionTimeoutMS: 5000,
     });
 
     isConnected = conn.connections[0].readyState === 1;
-    console.log(`[MongoDB] Connected successfully to: ${conn.connection.host}/${conn.connection.name}`);
+    console.log(`[MongoDB] Connected successfully to database: ${conn.connection.name}`);
 
     mongoose.connection.on('error', (err) => {
       console.error('[MongoDB] Connection error:', err.message);

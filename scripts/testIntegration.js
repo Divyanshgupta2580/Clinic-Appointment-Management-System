@@ -1,6 +1,12 @@
+require('dotenv').config();
 const http = require('http');
+const { connectDB, closeDB } = require('../config/db');
+const User = require('../models/User');
+const DoctorProfile = require('../models/DoctorProfile');
+const Appointment = require('../models/Appointment');
 
-const BASE_URL = 'http://127.0.0.1:3000';
+const port = process.env.PORT || 3000;
+const BASE_URL = process.env.TEST_URL || `http://127.0.0.1:${port}`;
 
 // Simple cookie-jar HTTP request helper
 function request(method, path, body = null, headers = {}) {
@@ -240,6 +246,18 @@ async function runIntegrationTests() {
     throw new Error(`Appointment details view failed or status was not completed: ${resDetails.statusCode}`);
   }
   console.log('✓ Appointment details verified with Completed status badge.');
+
+  console.log('\n16. Cleaning up temporary test records from MongoDB...');
+  try {
+    await connectDB();
+    await Appointment.deleteMany({ _id: appointmentId });
+    await DoctorProfile.deleteMany({ userId: doctorId });
+    await User.deleteMany({ email: { $in: [docEmail, patientEmail] } });
+    await closeDB();
+    console.log('✓ Temporary test data cleaned up successfully (Zero residual test data).');
+  } catch (cleanErr) {
+    console.warn('⚠️ Warning: Could not complete DB cleanup:', cleanErr.message);
+  }
 
   console.log('\n====================================================');
   console.log('🎉 ALL 15 END-TO-END INTEGRATION TESTS PASSED!');
