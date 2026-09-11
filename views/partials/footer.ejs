@@ -10,17 +10,48 @@
           </div>
           <strong>MediPulse Clinic</strong>
         </div>
-        <p class="footer-text">Production-grade healthcare appointment scheduling platform engineered with atomic database locks and zero double-booking.</p>
+        <p class="footer-text">Making healthcare appointments simpler, faster, and more convenient for patients and doctors.</p>
       </div>
-      <div class="footer-meta">
-        <p><strong>Security:</strong> Role-Based Access Control • Helmet Protection • Session Security</p>
-        <p><strong>Database:</strong> MongoDB Atlas • Partial Unique Index Engine Locks</p>
-        <p><strong>Stack:</strong> Node.js • Express • EJS Server-Side Rendering</p>
+
+      <div class="footer-nav-grid">
+        <div class="footer-nav-group">
+          <span class="footer-nav-heading">Navigation</span>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/patient/doctors">Find Doctors</a></li>
+            <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+              <% if (currentUser.role === 'patient') { %>
+                <li><a href="/patient/dashboard">Dashboard</a></li>
+                <li><a href="/patient/appointments">My Appointments</a></li>
+              <% } else if (currentUser.role === 'doctor') { %>
+                <li><a href="/doctor/dashboard">Dashboard</a></li>
+                <li><a href="/doctor/appointments">Appointments</a></li>
+              <% } else if (currentUser.role === 'admin') { %>
+                <li><a href="/admin/dashboard">Admin Dashboard</a></li>
+                <li><a href="/doctor/appointments">All Appointments</a></li>
+              <% } %>
+            <% } else { %>
+              <li><a href="/auth/login">Sign In</a></li>
+              <li><a href="/auth/register">Create Account</a></li>
+            <% } %>
+          </ul>
+        </div>
+
+        <div class="footer-nav-group">
+          <span class="footer-nav-heading">Clinical Departments</span>
+          <ul class="footer-links">
+            <li><a href="/patient/doctors?specialization=General%20Medicine">General Medicine</a></li>
+            <li><a href="/patient/doctors?specialization=Cardiology">Cardiology</a></li>
+            <li><a href="/patient/doctors?specialization=Pediatrics">Pediatrics</a></li>
+            <li><a href="/patient/doctors?specialization=Dermatology">Dermatology</a></li>
+          </ul>
+        </div>
       </div>
     </div>
+
     <div class="container footer-bottom">
       <p>&copy; <%= new Date().getFullYear() %> MediPulse Clinic. All rights reserved.</p>
-      <p>Healthcare Appointment Management System</p>
+      <p>Dedicated to Patient Care and Clinical Excellence</p>
     </div>
   </footer>
 

@@ -3,16 +3,16 @@
 <!-- HERO SECTION -->
 <section style="padding: 2.5rem 0 3.5rem 0; text-align: center;">
   <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 1rem; background-color: var(--primary-light); color: var(--info-text); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 600; margin-bottom: 1.5rem;">
-    <i data-lucide="shield-check" class="icon-sm"></i>
-    <span>Enterprise Clinical Appointment Infrastructure</span>
+    <i data-lucide="check-circle-2" class="icon-sm"></i>
+    <span>Modern Healthcare Services</span>
   </div>
 
   <h1 style="font-size: 3rem; font-weight: 800; color: var(--text-primary); line-height: 1.15; letter-spacing: -0.035em; max-width: 860px; margin: 0 auto 1.25rem auto;">
-    Precision Healthcare Scheduling with Zero Double-Booking
+    Book and Manage Your Healthcare Appointments with Ease
   </h1>
 
   <p style="font-size: 1.15rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 2.25rem auto; line-height: 1.6;">
-    Connecting patients and clinical specialists with guaranteed conflict-free slot reservation, instant next-available suggestions, and enterprise-grade role security.
+    Connecting patients with certified medical specialists for timely consultations, dedicated care, and simple online scheduling.
   </p>
 
   <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
@@ -38,7 +38,7 @@
       <% } else if (currentUser.role === 'admin') { %>
         <a href="/admin/dashboard" class="btn btn-primary btn-lg">
           <i data-lucide="shield"></i>
-          <span>Admin Command Center</span>
+          <span>Admin Dashboard</span>
         </a>
       <% } %>
     <% } else { %>
@@ -52,7 +52,7 @@
       </a>
       <a href="/auth/login" class="btn btn-outline btn-lg">
         <i data-lucide="log-in"></i>
-        <span>Physician / Admin Sign In</span>
+        <span>Doctor & Staff Sign In</span>
       </a>
     <% } %>
   </div>
@@ -92,11 +92,11 @@
 
   <div class="stat-card">
     <div class="stat-icon completed">
-      <i data-lucide="lock"></i>
+      <i data-lucide="award"></i>
     </div>
     <div class="stat-info">
       <div class="stat-value">100%</div>
-      <div class="stat-label">Zero Double-Booking Rate</div>
+      <div class="stat-label">Verified Consultations</div>
     </div>
   </div>
 </div>
@@ -210,9 +210,9 @@
       <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem auto; font-size: 1.25rem;">
         <i data-lucide="calendar-check"></i>
       </div>
-      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">2. Pick Live Slot</h3>
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">2. Select Convenient Slot</h3>
       <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">
-        View real-time doctor availability. Our atomic compound lock prevents race-condition double bookings.
+        Choose a date and consultation time that fits your schedule, with immediate slot confirmation.
       </p>
     </div>
 
@@ -222,31 +222,31 @@
       </div>
       <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">3. Verified Visit</h3>
       <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">
-        Physicians review and confirm consultations. Patients track visit history with detailed appointment states.
+        Physicians review and confirm consultations. Patients track visit history with clear appointment status updates.
       </p>
     </div>
   </div>
 </div>
 
-<!-- ARCHITECTURE & PLATFORM PILLARS -->
+<!-- PATIENT CARE COMMITMENTS -->
 <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 3.5rem;">
   <div class="card">
     <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-      <i data-lucide="shield"></i>
+      <i data-lucide="stethoscope"></i>
     </div>
-    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Zero Double-Booking</h3>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Certified Specialists</h3>
     <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55;">
-      Enforced at the MongoDB engine layer with compound unique indexes on <code>(doctorId, appointmentDate, appointmentTime)</code>.
+      Consult with experienced physicians across specialized clinical departments dedicated to thorough patient care.
     </p>
   </div>
 
   <div class="card">
     <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-      <i data-lucide="zap"></i>
+      <i data-lucide="calendar-check"></i>
     </div>
-    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Server-Side Rendered (SSR)</h3>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Guaranteed Time Slots</h3>
     <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55;">
-      Express + EJS architecture delivers fast, secure, search-engine accessible HTML pages with zero client-side hydration bloat.
+      Real-time availability ensures your chosen consultation time is booked accurately without scheduling conflicts.
     </p>
   </div>
 
@@ -254,19 +254,19 @@
     <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--warning-bg); color: var(--warning); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
       <i data-lucide="clock"></i>
     </div>
-    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Next Slot Intelligence</h3>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Suggested Openings</h3>
     <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55;">
-      If a slot is claimed simultaneously, our algorithm immediately computes the next available opening for a frictionless booking experience.
+      If your preferred time is booked, receive convenient recommendations for the next open consultation slot.
     </p>
   </div>
 
   <div class="card">
     <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: rgba(168, 85, 247, 0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-      <i data-lucide="lock"></i>
+      <i data-lucide="shield-check"></i>
     </div>
-    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Enterprise Security</h3>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">Private & Confidential</h3>
     <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55;">
-      Granular Role-Based Access Control (Patient, Doctor, Admin), bcrypt password encryption, Helmet headers, and rate limiting.
+      Your appointment history, physician notes, and personal consultations are kept completely confidential.
     </p>
   </div>
 </div>
