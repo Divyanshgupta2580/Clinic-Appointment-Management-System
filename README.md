@@ -385,7 +385,6 @@ NODE_ENV=development
 PORT=3000
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/clinic_appointment_db
 SESSION_SECRET=replace_with_a_long_random_session_secret
-APP_URL=http://localhost:3000
 ```
 
 ---
@@ -484,7 +483,6 @@ See the dedicated documentation:
    - `NODE_ENV`: `production`
    - `MONGODB_URI`: `<your actual MongoDB Atlas connection string>`
    - `SESSION_SECRET`: `<strong random session secret>`
-   - `APP_URL`: `https://<your-service-name>.onrender.com`
    *(Do NOT add `PORT`; Render assigns it dynamically to `process.env.PORT`)*.
 7. **Deploy:** Click **Create Web Service** and await successful build.
 8. **Verify /health:** Open `https://<your-service-name>.onrender.com/health` (should return HTTP 200 `{"status":"ok",...}`).
@@ -501,7 +499,6 @@ See the dedicated documentation:
    - `NODE_ENV`: `production`
    - `MONGODB_URI`: `<your actual MongoDB Atlas connection string>`
    - `SESSION_SECRET`: `<strong random session secret>`
-   - `APP_URL`: `https://<your-project-name>.vercel.app`
 4. **Deploy:** Click **Deploy**. Vercel routes all requests via `vercel.json` to `/api/index.js`.
 5. **Verify routing:** Check that the landing page renders.
 6. **Verify EJS rendering:** Check that styling and layouts load properly.

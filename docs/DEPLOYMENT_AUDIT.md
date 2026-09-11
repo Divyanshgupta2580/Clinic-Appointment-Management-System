@@ -9,7 +9,7 @@ This document records the results of the comprehensive deployment audit performe
 | Category | Status | Details |
 | :--- | :---: | :--- |
 | **1. PORT Audit** | **PASS** | Dynamic `process.env.PORT` used with `3000` local fallback. Binds to `0.0.0.0`. Tested on `PORT=4000`. |
-| **2. Environment Variables Audit** | **PASS** | Complete separation of config (`NODE_ENV`, `PORT`, `MONGODB_URI`, `SESSION_SECRET`, `APP_URL`). `.env` ignored. |
+| **2. Environment Variables Audit** | **PASS** | Complete separation of config (`NODE_ENV`, `PORT`, `MONGODB_URI`, `SESSION_SECRET`). `.env` ignored. |
 | **3. MongoDB Atlas Audit** | **PASS** | Exclusively uses `process.env.MONGODB_URI`. DB name locked to `clinic_appointment_db`. Zero credentials logged. |
 | **4. Session Management Audit** | **PASS** | Minimal identity stored (`_id`, `name`, `email`, `role`). `cookie.secure` production-aware. `trust proxy` enabled. |
 | **5. Ephemeral Filesystem Audit** | **PASS** | Zero local filesystem writes for persistent records. MongoDB Atlas is sole persistent datastore. |

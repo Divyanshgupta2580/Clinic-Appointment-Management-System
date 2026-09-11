@@ -267,7 +267,7 @@ Three collections in MongoDB:
 ---
 
 ## 25. How is it deployed?
-1. **Environment Variables:** Set `NODE_ENV=production`, `PORT=3000`, `MONGODB_URI=<Atlas_Connection_String>`, `SESSION_SECRET=<Strong_Random_Secret>`, and `APP_URL`.
-2. **Process Management:** Run with PM2 or Node systemd service (`node server.js`) behind an Nginx reverse proxy with SSL/TLS certificate (Let's Encrypt).
+1. **Environment Variables:** Set `NODE_ENV=production`, `MONGODB_URI=<Atlas_Connection_String>`, and `SESSION_SECRET=<Strong_Random_Secret>`.
+2. **Process Management:** Run with Render Web Service (`node server.js`), which assigns `PORT` dynamically, behind Render's HTTPS reverse proxy.
 3. **Database:** Connects over TLS to a managed MongoDB Atlas cloud cluster.
 4. **Static Files:** Efficiently served with cache headers from `public/`.

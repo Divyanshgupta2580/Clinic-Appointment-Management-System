@@ -66,7 +66,6 @@ cp .env.example .env
 # PORT=3000
 # MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/clinic_appointment_db
 # SESSION_SECRET=your_super_secret_session_key
-# APP_URL=http://localhost:3000
 
 # 5. Start development server with automatic file watching
 npm run dev
@@ -114,7 +113,6 @@ Render provides a standard Node.js runtime environment that naturally matches ou
    | `NODE_ENV` | `production` |
    | `MONGODB_URI` | `mongodb+srv://<username>:<password>@<cluster>.mongodb.net/clinic_appointment_db` |
    | `SESSION_SECRET` | *(Paste a long random 64-character hex string)* |
-   | `APP_URL` | `https://<your-service-name>.onrender.com` |
 
    > [!IMPORTANT]
    > **DO NOT** add `PORT` in the Render Environment Variables tab! Render automatically assigns a dynamic port and sets `process.env.PORT`. The application reads this value automatically and binds to `0.0.0.0:${PORT}`.
@@ -159,7 +157,6 @@ Vercel treats web applications as serverless functions. The repository includes 
    | `NODE_ENV` | `production` |
    | `MONGODB_URI` | `mongodb+srv://<username>:<password>@<cluster>.mongodb.net/clinic_appointment_db` |
    | `SESSION_SECRET` | *(Paste a long random 64-character hex string)* |
-   | `APP_URL` | `https://<your-project-name>.vercel.app` |
 
 4. **Deploy:**
    - Click **Deploy**.
