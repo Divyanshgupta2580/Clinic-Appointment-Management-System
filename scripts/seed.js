@@ -14,7 +14,7 @@ const demoAdmin = {
   role: 'admin',
 };
 
-// 11 Demo Doctors across 10 specialties
+// 11 Demo Doctors across 10 medical specializations
 const demoDoctors = [
   {
     user: { name: 'Marcus Vance', email: 'dr.marcus.vance@medipulse.demo', role: 'doctor' },
@@ -162,37 +162,182 @@ const demoPatients = [
   { name: 'Daniel Brooks', email: 'patient.daniel@medipulse.demo', role: 'patient' },
 ];
 
-// 20 Structured Appointments (Distributed across doctors & patients with realistic statuses)
+/**
+ * EXACT 20 APPOINTMENTS BLUEPRINT:
+ * - 6 Pending
+ * - 6 Confirmed ('accepted')
+ * - 5 Completed ('completed')
+ * - 3 Rejected ('rejected')
+ * Total = 20 Appointments
+ */
 const demoAppointmentsBlueprint = [
-  // Today's schedule (2026-09-11, Friday)
-  { docEmail: 'dr.marcus.vance@medipulse.demo', patientEmail: 'patient.sarah@medipulse.demo', date: '2026-09-11', time: '10:00', status: 'accepted', notes: 'Routine cardiovascular checkup and ECG review' },
-  { docEmail: 'dr.elena.rostova@medipulse.demo', patientEmail: 'patient.michael@medipulse.demo', date: '2026-09-11', time: '11:00', status: 'pending', notes: 'Persistent skin rash consultation' },
-  { docEmail: 'dr.david.kim@medipulse.demo', patientEmail: 'patient.emily@medipulse.demo', date: '2026-09-11', time: '14:00', status: 'completed', notes: 'Annual wellness exam and blood pressure check' },
-  { docEmail: 'dr.maya.lin@medipulse.demo', patientEmail: 'patient.james@medipulse.demo', date: '2026-09-11', time: '09:30', status: 'completed', notes: 'Childhood seasonal immunization' },
+  // ==================== 6 PENDING APPOINTMENTS ====================
+  {
+    docEmail: 'dr.marcus.vance@medipulse.demo',
+    patientEmail: 'patient.emily@medipulse.demo',
+    date: '2026-09-15',
+    time: '09:00',
+    status: 'pending',
+    notes: 'Initial cardiac screening and blood pressure evaluation',
+  },
+  {
+    docEmail: 'dr.elena.rostova@medipulse.demo',
+    patientEmail: 'patient.sarah@medipulse.demo',
+    date: '2026-09-11',
+    time: '11:00',
+    status: 'pending',
+    notes: 'Persistent skin rash consultation and topical review',
+  },
+  {
+    docEmail: 'dr.arthur.pendelton@medipulse.demo',
+    patientEmail: 'patient.lucas@medipulse.demo',
+    date: '2026-09-16',
+    time: '14:30',
+    status: 'pending',
+    notes: 'Post-sprain ankle mobility follow-up consultation',
+  },
+  {
+    docEmail: 'dr.rachel.thorne@medipulse.demo',
+    patientEmail: 'patient.lucas@medipulse.demo',
+    date: '2026-09-14',
+    time: '11:00',
+    status: 'pending',
+    notes: 'Chronic migraine frequency evaluation and symptom journal',
+  },
+  {
+    docEmail: 'dr.oliver.queen@medipulse.demo',
+    patientEmail: 'patient.chloe@medipulse.demo',
+    date: '2026-09-16',
+    time: '11:00',
+    status: 'pending',
+    notes: 'Routine wellness physical examination and allergy inquiry',
+  },
+  {
+    docEmail: 'dr.sophia.martinez@medipulse.demo',
+    patientEmail: 'patient.emily@medipulse.demo',
+    date: '2026-09-18',
+    time: '14:00',
+    status: 'pending',
+    notes: 'Vision prescription update and dry eyes evaluation',
+  },
 
-  // Monday (2026-09-14)
-  { docEmail: 'dr.arthur.pendelton@medipulse.demo', patientEmail: 'patient.priya@medipulse.demo', date: '2026-09-14', time: '10:00', status: 'accepted', notes: 'Right knee joint stiffness and mobility assessment' },
-  { docEmail: 'dr.rachel.thorne@medipulse.demo', patientEmail: 'patient.lucas@medipulse.demo', date: '2026-09-14', time: '11:00', status: 'pending', notes: 'Chronic migraine frequency evaluation' },
-  { docEmail: 'dr.tariq.almansoor@medipulse.demo', patientEmail: 'patient.chloe@medipulse.demo', date: '2026-09-14', time: '09:30', status: 'accepted', notes: 'Sinusitis follow-up and nasal endoscopy' },
-  { docEmail: 'dr.sophia.martinez@medipulse.demo', patientEmail: 'patient.daniel@medipulse.demo', date: '2026-09-14', time: '10:30', status: 'completed', notes: 'Comprehensive diabetic retinal screening' },
+  // ==================== 6 CONFIRMED APPOINTMENTS ====================
+  {
+    docEmail: 'dr.marcus.vance@medipulse.demo',
+    patientEmail: 'patient.sarah@medipulse.demo',
+    date: '2026-09-11',
+    time: '10:00',
+    status: 'accepted',
+    notes: 'Cardiovascular checkup and resting ECG review',
+  },
+  {
+    docEmail: 'dr.arthur.pendelton@medipulse.demo',
+    patientEmail: 'patient.priya@medipulse.demo',
+    date: '2026-09-14',
+    time: '10:00',
+    status: 'accepted',
+    notes: 'Right knee joint stiffness and mobility assessment',
+  },
+  {
+    docEmail: 'dr.tariq.almansoor@medipulse.demo',
+    patientEmail: 'patient.chloe@medipulse.demo',
+    date: '2026-09-14',
+    time: '09:30',
+    status: 'accepted',
+    notes: 'Sinusitis follow-up and diagnostic nasal endoscopy',
+  },
+  {
+    docEmail: 'dr.anita.desai@medipulse.demo',
+    patientEmail: 'patient.sarah@medipulse.demo',
+    date: '2026-09-15',
+    time: '10:00',
+    status: 'accepted',
+    notes: 'Annual preventative wellness and health consultation',
+  },
+  {
+    docEmail: 'dr.julian.croft@medipulse.demo',
+    patientEmail: 'patient.michael@medipulse.demo',
+    date: '2026-09-15',
+    time: '11:00',
+    status: 'accepted',
+    notes: 'Bi-weekly cognitive behavioral therapy review session',
+  },
+  {
+    docEmail: 'dr.elena.rostova@medipulse.demo',
+    patientEmail: 'patient.priya@medipulse.demo',
+    date: '2026-09-16',
+    time: '10:00',
+    status: 'accepted',
+    notes: 'Dermal allergy patch testing and reaction monitoring',
+  },
 
-  // Tuesday (2026-09-15)
-  { docEmail: 'dr.anita.desai@medipulse.demo', patientEmail: 'patient.sarah@medipulse.demo', date: '2026-09-15', time: '10:00', status: 'accepted', notes: 'Preventative health consultation' },
-  { docEmail: 'dr.julian.croft@medipulse.demo', patientEmail: 'patient.michael@medipulse.demo', date: '2026-09-15', time: '11:00', status: 'accepted', notes: 'Cognitive behavioral therapy session' },
-  { docEmail: 'dr.oliver.queen@medipulse.demo', patientEmail: 'patient.emily@medipulse.demo', date: '2026-09-15', time: '09:00', status: 'pending', notes: 'Follow-up for mild iron deficiency' },
-  { docEmail: 'dr.marcus.vance@medipulse.demo', patientEmail: 'patient.james@medipulse.demo', date: '2026-09-15', time: '14:00', status: 'rejected', notes: 'Request outside normal cardiology referral scope' },
+  // ==================== 5 COMPLETED APPOINTMENTS ====================
+  {
+    docEmail: 'dr.marcus.vance@medipulse.demo',
+    patientEmail: 'patient.james@medipulse.demo',
+    date: '2026-09-11',
+    time: '14:00',
+    status: 'completed',
+    notes: 'Completed resting ECG and blood pressure consultation',
+  },
+  {
+    docEmail: 'dr.maya.lin@medipulse.demo',
+    patientEmail: 'patient.sarah@medipulse.demo',
+    date: '2026-09-11',
+    time: '09:30',
+    status: 'completed',
+    notes: 'Completed childhood seasonal immunization and milestone check',
+  },
+  {
+    docEmail: 'dr.sophia.martinez@medipulse.demo',
+    patientEmail: 'patient.daniel@medipulse.demo',
+    date: '2026-09-14',
+    time: '10:30',
+    status: 'completed',
+    notes: 'Completed comprehensive diabetic retinal examination',
+  },
+  {
+    docEmail: 'dr.david.kim@medipulse.demo',
+    patientEmail: 'patient.daniel@medipulse.demo',
+    date: '2026-09-16',
+    time: '15:30',
+    status: 'completed',
+    notes: 'Completed travel vaccinations and executive physical',
+  },
+  {
+    docEmail: 'dr.tariq.almansoor@medipulse.demo',
+    patientEmail: 'patient.michael@medipulse.demo',
+    date: '2026-09-18',
+    time: '11:30',
+    status: 'completed',
+    notes: 'Completed audiology screening and hearing report review',
+  },
 
-  // Wednesday (2026-09-16)
-  { docEmail: 'dr.elena.rostova@medipulse.demo', patientEmail: 'patient.priya@medipulse.demo', date: '2026-09-16', time: '10:00', status: 'accepted', notes: 'Dermal allergy patch testing' },
-  { docEmail: 'dr.arthur.pendelton@medipulse.demo', patientEmail: 'patient.lucas@medipulse.demo', date: '2026-09-16', time: '14:30', status: 'pending', notes: 'Post-sprain ankle mobility follow-up' },
-  { docEmail: 'dr.maya.lin@medipulse.demo', patientEmail: 'patient.chloe@medipulse.demo', date: '2026-09-16', time: '11:00', status: 'pending', notes: 'Pediatric wellness and growth monitoring' },
-  { docEmail: 'dr.david.kim@medipulse.demo', patientEmail: 'patient.daniel@medipulse.demo', date: '2026-09-16', time: '15:30', status: 'completed', notes: 'Travel vaccinations and general physical' },
-
-  // Friday (2026-09-18)
-  { docEmail: 'dr.rachel.thorne@medipulse.demo', patientEmail: 'patient.sarah@medipulse.demo', date: '2026-09-18', time: '14:00', status: 'rejected', notes: 'Patient requested tele-consultation which is not offered' },
-  { docEmail: 'dr.tariq.almansoor@medipulse.demo', patientEmail: 'patient.michael@medipulse.demo', date: '2026-09-18', time: '11:30', status: 'completed', notes: 'Hearing assessment and audiology report review' },
-  { docEmail: 'dr.sophia.martinez@medipulse.demo', patientEmail: 'patient.emily@medipulse.demo', date: '2026-09-18', time: '14:00', status: 'completed', notes: 'Refractive vision test and prescription check' },
-  { docEmail: 'dr.anita.desai@medipulse.demo', patientEmail: 'patient.priya@medipulse.demo', date: '2026-09-18', time: '14:30', status: 'rejected', notes: 'Scheduling conflict resolved with next available slot' },
+  // ==================== 3 REJECTED / DECLINED APPOINTMENTS ====================
+  {
+    docEmail: 'dr.marcus.vance@medipulse.demo',
+    patientEmail: 'patient.michael@medipulse.demo',
+    date: '2026-09-15',
+    time: '14:00',
+    status: 'rejected',
+    notes: 'Declined: Request outside cardiology outpatient scope',
+  },
+  {
+    docEmail: 'dr.rachel.thorne@medipulse.demo',
+    patientEmail: 'patient.sarah@medipulse.demo',
+    date: '2026-09-18',
+    time: '14:00',
+    status: 'rejected',
+    notes: 'Declined: Patient requested tele-consultation which is not offered',
+  },
+  {
+    docEmail: 'dr.anita.desai@medipulse.demo',
+    patientEmail: 'patient.priya@medipulse.demo',
+    date: '2026-09-18',
+    time: '14:30',
+    status: 'rejected',
+    notes: 'Declined: Physician emergency surgical coverage; suggested next slot',
+  },
 ];
 
 async function seedDatabase() {
@@ -232,6 +377,11 @@ async function seedDatabase() {
         passwordHash,
       });
       console.log(`[Seed] Created Doctor User: ${docData.user.name} (${docData.user.email})`);
+    } else {
+      // Ensure name and role are preserved
+      docUser.name = docData.user.name;
+      docUser.role = 'doctor';
+      await docUser.save();
     }
 
     let profile = await DoctorProfile.findOne({ userId: docUser._id });
@@ -241,6 +391,10 @@ async function seedDatabase() {
         ...docData.profile,
       });
       console.log(`[Seed] Created DoctorProfile for: Dr. ${docData.user.name} [${docData.profile.specialization}]`);
+    } else {
+      // Update profile attributes to ensure accurate specialization/hours
+      Object.assign(profile, docData.profile);
+      await profile.save();
     }
 
     doctorMap[docData.user.email] = docUser;
@@ -257,13 +411,18 @@ async function seedDatabase() {
       });
       console.log(`[Seed] Created Patient: ${patientData.name} (${patientData.email})`);
     } else {
-      console.log(`[Seed] Patient already exists: ${patientData.email}`);
+      patientUser.name = patientData.name;
+      patientUser.role = 'patient';
+      await patientUser.save();
     }
     patientMap[patientData.email] = patientUser;
   }
 
-  // 4. Seed Appointments
-  let createdAptCount = 0;
+  // 4. Seed / Synchronize Appointments
+  const activeBlueprintKeys = new Set();
+  let createdCount = 0;
+  let updatedCount = 0;
+
   for (const aptData of demoAppointmentsBlueprint) {
     const docUser = doctorMap[aptData.docEmail];
     const patientUser = patientMap[aptData.patientEmail];
@@ -273,14 +432,22 @@ async function seedDatabase() {
       continue;
     }
 
-    // Check if appointment already exists for this slot
+    const slotKey = `${docUser._id.toString()}_${aptData.date}_${aptData.time}`;
+    activeBlueprintKeys.add(slotKey);
+
     const existing = await Appointment.findOne({
       doctorId: docUser._id,
       appointmentDate: aptData.date,
       appointmentTime: aptData.time,
     });
 
-    if (!existing) {
+    if (existing) {
+      existing.patientId = patientUser._id;
+      existing.status = aptData.status;
+      existing.notes = aptData.notes;
+      await existing.save();
+      updatedCount++;
+    } else {
       await Appointment.create({
         patientId: patientUser._id,
         doctorId: docUser._id,
@@ -289,24 +456,68 @@ async function seedDatabase() {
         status: aptData.status,
         notes: aptData.notes,
       });
-      createdAptCount++;
+      createdCount++;
     }
   }
 
-  console.log(`[Seed] Appointments processed. (${createdAptCount} newly inserted, remainder already present)`);
+  // Remove any stale demo appointments that are between demo accounts but not in the 20 blueprint items
+  const demoDocIds = Object.values(doctorMap).map((d) => d._id);
+  const demoPatientIds = Object.values(patientMap).map((p) => p._id);
 
-  const [totalDocs, totalPatients, totalApts] = await Promise.all([
-    DoctorProfile.countDocuments(),
-    User.countDocuments({ role: 'patient' }),
-    Appointment.countDocuments(),
+  const staleDemoApts = await Appointment.find({
+    doctorId: { $in: demoDocIds },
+    patientId: { $in: demoPatientIds },
+  });
+
+  let prunedCount = 0;
+  for (const apt of staleDemoApts) {
+    const slotKey = `${apt.doctorId.toString()}_${apt.appointmentDate}_${apt.appointmentTime}`;
+    if (!activeBlueprintKeys.has(slotKey)) {
+      await Appointment.deleteOne({ _id: apt._id });
+      prunedCount++;
+    }
+  }
+
+  console.log(`[Seed] Appointments synchronized: ${createdCount} created, ${updatedCount} updated, ${prunedCount} stale demo slots pruned.`);
+
+  // Verify status breakdown
+  const statusAggregation = await Appointment.aggregate([
+    {
+      $match: {
+        doctorId: { $in: demoDocIds },
+        patientId: { $in: demoPatientIds },
+      },
+    },
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const distribution = statusAggregation.reduce((acc, curr) => {
+    acc[curr._id] = curr.count;
+    return acc;
+  }, {});
+
+  const [totalDocs, totalPatients, totalDemoApts] = await Promise.all([
+    DoctorProfile.countDocuments({ userId: { $in: demoDocIds } }),
+    User.countDocuments({ email: { $regex: /@medipulse\.demo$/ }, role: 'patient' }),
+    Appointment.countDocuments({ doctorId: { $in: demoDocIds }, patientId: { $in: demoPatientIds } }),
   ]);
 
   console.log('\n====================================================');
-  console.log('[Seed] SUMMARY OF DATABASE DEMO POPULATION:');
-  console.log(` - Total Doctors with Profiles: ${totalDocs}`);
-  console.log(` - Total Registered Patients:   ${totalPatients}`);
-  console.log(` - Total Appointments:          ${totalApts}`);
-  console.log(` - Default Demo Password:       ${DEMO_PASSWORD}`);
+  console.log('[Seed] SUMMARY OF DEMO DATASET:');
+  console.log(` - Total Demo Doctors with Profiles: ${totalDocs}`);
+  console.log(` - Total Demo Registered Patients:   ${totalPatients}`);
+  console.log(` - Total Demo Appointments:          ${totalDemoApts}`);
+  console.log(' - Appointment Distribution:');
+  console.log(`     • Pending:   ${distribution['pending'] || 0} (Expected: 6)`);
+  console.log(`     • Confirmed: ${distribution['accepted'] || 0} (Expected: 6)`);
+  console.log(`     • Completed: ${distribution['completed'] || 0} (Expected: 5)`);
+  console.log(`     • Rejected:  ${distribution['rejected'] || 0} (Expected: 3)`);
+  console.log(` - Default Demo Password:             ${DEMO_PASSWORD}`);
   console.log('====================================================');
   console.log('[Seed] SAFE SEEDING COMPLETED SUCCESSFULLY!');
 
