@@ -14,10 +14,10 @@ const startServer = async () => {
 
     server.listen(PORT, '0.0.0.0', () => {
       console.log('====================================================');
-      console.log(`🏥 MediPulse Clinic Management System`);
-      console.log(`🚀 Server running on port: ${PORT}`);
-      console.log(`🌐 Host: 0.0.0.0 (Accepts external connections)`);
-      console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`[MediPulse] Clinic Appointment Management System`);
+      console.log(`[Server] Running on port: ${PORT}`);
+      console.log(`[Network] Host: 0.0.0.0 (Accepts external connections)`);
+      console.log(`[Environment] Mode: ${process.env.NODE_ENV || 'development'}`);
       console.log('====================================================');
     });
   } catch (err) {

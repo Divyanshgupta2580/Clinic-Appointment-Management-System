@@ -3,8 +3,11 @@
 <div class="auth-wrapper">
   <div class="auth-card">
     <div class="auth-header">
+      <div class="brand-icon-box" style="margin: 0 auto 1rem auto;">
+        <i data-lucide="lock" class="icon-brand"></i>
+      </div>
       <h1 class="auth-title">Welcome Back</h1>
-      <p class="auth-subtitle">Sign in to manage your clinic appointments</p>
+      <p class="auth-subtitle">Sign in to manage your clinic appointments and records</p>
     </div>
 
     <form action="/auth/login" method="POST" class="auth-form" novalidate>
@@ -36,7 +39,10 @@
         >
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block btn-lg">Log In</button>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.25rem;">
+        <i data-lucide="log-in" class="icon-sm"></i>
+        <span>Log In</span>
+      </button>
     </form>
 
     <div class="auth-footer">

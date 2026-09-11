@@ -3,9 +3,15 @@
 <div class="page-header">
   <div>
     <% if (currentUser.role === 'patient') { %>
-      <a href="/patient/appointments" class="btn btn-ghost btn-sm" style="margin-bottom: 0.5rem;">← Back to My Appointments</a>
+      <a href="/patient/appointments" class="btn btn-ghost btn-sm" style="margin-bottom: 0.6rem;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>
+        <span>Back to My Appointments</span>
+      </a>
     <% } else { %>
-      <a href="/doctor/appointments" class="btn btn-ghost btn-sm" style="margin-bottom: 0.5rem;">← Back to Appointments</a>
+      <a href="/doctor/appointments" class="btn btn-ghost btn-sm" style="margin-bottom: 0.6rem;">
+        <i data-lucide="arrow-left" class="icon-sm"></i>
+        <span>Back to Appointments</span>
+      </a>
     <% } %>
     <h1 class="page-title">Appointment Details</h1>
     <p class="page-subtitle">ID: #<%= appointment._id %></p>
@@ -42,22 +48,34 @@
       <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
         <% if (isDoctorAssigned || isAdmin) { %>
           <% if (appointment.status === 'pending') { %>
-            <form action="/appointments/<%= appointment._id %>/accept" method="POST" style="display: inline;">
-              <button type="submit" class="btn btn-success">Accept Appointment</button>
+            <form action="/appointments/<%= appointment._id %>/accept" method="POST" style="display: inline; margin: 0;">
+              <button type="submit" class="btn btn-success">
+                <i data-lucide="check" class="icon-sm"></i>
+                <span>Accept Appointment</span>
+              </button>
             </form>
-            <form action="/appointments/<%= appointment._id %>/reject" method="POST" style="display: inline;">
-              <button type="submit" class="btn btn-danger">Decline Appointment</button>
+            <form action="/appointments/<%= appointment._id %>/reject" method="POST" style="display: inline; margin: 0;">
+              <button type="submit" class="btn btn-danger">
+                <i data-lucide="x" class="icon-sm"></i>
+                <span>Decline Appointment</span>
+              </button>
             </form>
           <% } else if (appointment.status === 'accepted') { %>
-            <form action="/appointments/<%= appointment._id %>/complete" method="POST" style="display: inline;">
-              <button type="submit" class="btn btn-accent">Mark Completed</button>
+            <form action="/appointments/<%= appointment._id %>/complete" method="POST" style="display: inline; margin: 0;">
+              <button type="submit" class="btn btn-accent">
+                <i data-lucide="check-circle" class="icon-sm"></i>
+                <span>Mark Completed</span>
+              </button>
             </form>
           <% } %>
         <% } %>
 
         <% if ((isPatientOwner || isDoctorAssigned || isAdmin) && (appointment.status === 'pending' || appointment.status === 'accepted')) { %>
-          <form action="/appointments/<%= appointment._id %>/cancel" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" style="display: inline;">
-            <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);">Cancel Appointment</button>
+          <form action="/appointments/<%= appointment._id %>/cancel" method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" style="display: inline; margin: 0;">
+            <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);">
+              <i data-lucide="ban" class="icon-sm"></i>
+              <span>Cancel Appointment</span>
+            </button>
           </form>
         <% } %>
       </div>
@@ -71,8 +89,8 @@
       <div class="card-header">
         <h2 class="card-title">Patient Profile</h2>
       </div>
-      <p style="font-size: 1.1rem; font-weight: 700;"><%= appointment.patientId ? appointment.patientId.name : 'Unknown' %></p>
-      <p class="text-muted"><%= appointment.patientId ? appointment.patientId.email : '—' %></p>
+      <p style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);"><%= appointment.patientId ? appointment.patientId.name : 'Unknown' %></p>
+      <p class="text-muted"><%= appointment.patientId ? appointment.patientId.email : 'None' %></p>
     </div>
 
     <!-- Doctor Info -->
@@ -80,13 +98,16 @@
       <div class="card-header">
         <h2 class="card-title">Consulting Physician</h2>
       </div>
-      <p style="font-size: 1.1rem; font-weight: 700;">Dr. <%= appointment.doctorId ? appointment.doctorId.name : 'Unknown' %></p>
-      <p class="doctor-spec"><%= doctorProfile ? doctorProfile.specialization : 'General Practice' %></p>
-      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.35rem;">
+      <p style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Dr. <%= appointment.doctorId ? appointment.doctorId.name : 'Unknown' %></p>
+      <div class="doctor-spec" style="margin: 0.35rem 0 0.5rem 0;">
+        <i data-lucide="activity" class="icon-sm"></i>
+        <span><%= doctorProfile ? doctorProfile.specialization : 'General Practice' %></span>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">
         Qualification: <%= doctorProfile ? doctorProfile.qualification : 'MBBS' %> • 
         Experience: <%= doctorProfile ? doctorProfile.experience : 1 %> Yrs
       </p>
-      <p class="text-muted" style="font-size: 0.85rem; margin-top: 0.25rem;"><%= appointment.doctorId ? appointment.doctorId.email : '—' %></p>
+      <p class="text-muted" style="font-size: 0.85rem; margin-top: 0.35rem;"><%= appointment.doctorId ? appointment.doctorId.email : 'None' %></p>
     </div>
   </div>
 </div>

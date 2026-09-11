@@ -124,10 +124,10 @@ Render provides a standard Node.js runtime environment that naturally matches ou
      ==> Running build command 'npm install'...
      ==> Starting service with 'npm start'...
      [MongoDB] Connected successfully to database: clinic_appointment_db
-     🏥 MediPulse Clinic Management System
-     🚀 Server running on port: 10000
-     🌐 Host: 0.0.0.0 (Accepts external connections)
-     ⚙️  Environment: production
+     [MediPulse] Clinic Appointment Management System
+     [Server] Running on port: 10000
+     [Network] Host: 0.0.0.0 (Accepts external connections)
+     [Environment] Mode: production
      ```
    - Click your service URL: `https://<service-name>.onrender.com`.
    - Verify health check: `https://<service-name>.onrender.com/health` (should return `{"status":"ok", ...}`).
@@ -163,7 +163,7 @@ Vercel treats web applications as serverless functions. The repository includes 
    - Vercel routes incoming requests through `vercel.json` to `/api/index.js`.
    - Verify health check: `https://<project-name>.vercel.app/health`.
 
-### ⚠️ Honest Vercel Limitation Notice (Sessions):
+### [Note] Honest Vercel Limitation Notice (Sessions):
 - **Serverless Session Memory Isolation:** Vercel spins up independent, ephemeral AWS Lambda containers to service incoming HTTP requests. Because `express-session` uses an in-memory session store by default, memory is **not shared across separate lambdas**.
 - **Impact:** A patient who logs in on Lambda A may be routed to Lambda B on their next request (e.g. `/patient/dashboard`), causing a session loss / redirect to login.
 - **Why Render is Preferred:** For an Express + EJS application using session-cookie authentication without Redis, **Render is the primary and recommended deployment target**.

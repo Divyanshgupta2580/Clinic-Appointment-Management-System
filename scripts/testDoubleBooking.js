@@ -8,7 +8,7 @@ const { findNextAvailableSlot } = require('../utils/slotUtils');
 
 async function testDoubleBookingConstraint() {
   console.log('====================================================');
-  console.log('🧪 TESTING DATABASE-LEVEL DOUBLE-BOOKING CONSTRAINT');
+  console.log('[TEST] DATABASE-LEVEL DOUBLE-BOOKING CONSTRAINT');
   console.log('====================================================');
 
   await connectDB();
@@ -27,9 +27,9 @@ async function testDoubleBookingConstraint() {
   );
 
   if (!hasUniqueCompoundIndex) {
-    throw new Error('❌ Compound unique index on (doctorId, appointmentDate, appointmentTime) was NOT found!');
+    throw new Error('[FAIL] Compound unique index on (doctorId, appointmentDate, appointmentTime) was NOT found!');
   }
-  console.log('✓ Compound unique index confirmed in MongoDB engine.');
+  console.log('[PASS] Compound unique index confirmed in MongoDB engine.');
 
   // Create temporary test users for verification
   const testDoctorId = new mongoose.Types.ObjectId();
@@ -63,7 +63,7 @@ async function testDoubleBookingConstraint() {
     status: 'pending',
     notes: 'Patient 1 Booking',
   });
-  console.log(`✓ Booking 1 succeeded! Appointment ID: ${apt1._id}`);
+  console.log(`[PASS] Booking 1 succeeded! Appointment ID: ${apt1._id}`);
 
   console.log('\n--- Step 2: Patient 2 attempts to book the EXACT same slot (Concurrent Simulation) ---');
   let duplicatePrevented = false;
@@ -76,11 +76,11 @@ async function testDoubleBookingConstraint() {
       status: 'pending',
       notes: 'Patient 2 Race Attempt',
     });
-    console.error('❌ ERROR: Duplicate appointment was incorrectly allowed!');
+    console.error('[FAIL] Duplicate appointment was incorrectly allowed!');
   } catch (err) {
     if (err.code === 11000) {
       duplicatePrevented = true;
-      console.log('✓ SUCCESS: MongoDB E11000 Duplicate Key Error was correctly thrown by database engine!');
+      console.log('[PASS] SUCCESS: MongoDB E11000 Duplicate Key Error was correctly thrown by database engine!');
       console.log(`  Engine Message: ${err.message}`);
     } else {
       console.error('Unexpected error:', err);
@@ -97,14 +97,14 @@ async function testDoubleBookingConstraint() {
   if (!nextSlot || nextSlot.time !== '10:30') {
     throw new Error(`Expected next slot 10:30, got ${nextSlot?.time}`);
   }
-  console.log('✓ Next available slot correctly calculated as 10:30 AM!');
+  console.log('[PASS] Next available slot correctly calculated as 10:30 AM!');
 
   // Cleanup test records
   await Appointment.deleteMany({ doctorId: testDoctorId });
   await DoctorProfile.deleteMany({ userId: testDoctorId });
 
   console.log('\n====================================================');
-  console.log('🎉 ALL DOUBLE-BOOKING TESTS PASSED PERFECTLY!');
+  console.log('[SUCCESS] ALL DOUBLE-BOOKING TESTS PASSED PERFECTLY!');
   console.log('====================================================');
 
   await closeDB();

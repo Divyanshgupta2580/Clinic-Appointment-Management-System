@@ -77,41 +77,41 @@ npm test
 ### Expected Output Summary:
 ```
 --- RUNNING SLOT UTILS UNIT TESTS ---
-✓ Time conversion tests passed
-✓ 30-min slot generation passed
-✓ 15-min slot generation passed
-✓ Day of week calculation passed
-ALL UNIT TESTS PASSED SUCCESSFULLY! 🎉
+[PASS] Time conversion tests passed
+[PASS] 30-min slot generation passed
+[PASS] 15-min slot generation passed
+[PASS] Day of week calculation passed
+ALL UNIT TESTS PASSED SUCCESSFULLY!
 
 ====================================================
-🧪 TESTING DATABASE-LEVEL DOUBLE-BOOKING CONSTRAINT
+[TEST] TESTING DATABASE-LEVEL DOUBLE-BOOKING CONSTRAINT
 ====================================================
-✓ Compound unique index confirmed in MongoDB engine.
-✓ Booking 1 succeeded!
-✓ SUCCESS: MongoDB E11000 Duplicate Key Error was correctly thrown by database engine!
-✓ Next available slot correctly calculated as 10:30 AM!
-🎉 ALL DOUBLE-BOOKING TESTS PASSED PERFECTLY!
+[PASS] Compound unique index confirmed in MongoDB engine.
+[PASS] Booking 1 succeeded!
+[PASS] SUCCESS: MongoDB E11000 Duplicate Key Error was correctly thrown by database engine!
+[PASS] Next available slot correctly calculated as 10:30 AM!
+[SUCCESS] ALL DOUBLE-BOOKING TESTS PASSED PERFECTLY!
 
 ====================================================
-🧪 RUNNING END-TO-END HTTP INTEGRATION TESTS
+[TEST] RUNNING END-TO-END HTTP INTEGRATION TESTS
 ====================================================
-1. Testing GET / (Landing Page)... ✓
-2. Testing unauthenticated access... ✓
-3. Testing invalid credentials login... ✓
-4. Registering Doctor... ✓
-5. Role authorization Doctor -> Patient... ✓
-6. Registering Patient... ✓
-7. Role authorization Patient -> Doctor... ✓
-8. Fetching doctors list... ✓
-9. Testing JSON API /api/doctors/:id/available-slots... ✓
-10. Booking Appointment for 09:00 AM... ✓
-11. Duplicate booking attempt -> HTTP 409 Conflict... ✓
-12. Doctor views appointments list... ✓
-13. Doctor accepts appointment... ✓
-14. Doctor completes appointment... ✓
-15. Viewing appointment details page... ✓
-16. Cleaning up temporary test records... ✓
-🎉 ALL 15 END-TO-END INTEGRATION TESTS PASSED!
+1. Testing GET / (Landing Page)... [PASS]
+2. Testing unauthenticated access... [PASS]
+3. Testing invalid credentials login... [PASS]
+4. Registering Doctor... [PASS]
+5. Role authorization Doctor -> Patient... [PASS]
+6. Registering Patient... [PASS]
+7. Role authorization Patient -> Doctor... [PASS]
+8. Fetching doctors list... [PASS]
+9. Testing JSON API /api/doctors/:id/available-slots... [PASS]
+10. Booking Appointment for 09:00 AM... [PASS]
+11. Duplicate booking attempt -> HTTP 409 Conflict... [PASS]
+12. Doctor views appointments list... [PASS]
+13. Doctor accepts appointment... [PASS]
+14. Doctor completes appointment... [PASS]
+15. Viewing appointment details page... [PASS]
+16. Cleaning up temporary test records... [PASS]
+[SUCCESS] ALL 15 END-TO-END INTEGRATION TESTS PASSED!
 ```
 
 ---

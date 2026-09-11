@@ -3,15 +3,20 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Clinic Administration</h1>
-    <p class="page-subtitle">Central oversight for patients, physicians, and clinic operations</p>
+    <p class="page-subtitle">Central oversight for patients, medical staff, and clinic operations</p>
   </div>
-  <a href="/doctor/appointments" class="btn btn-primary">Manage All Appointments</a>
+  <a href="/doctor/appointments" class="btn btn-primary">
+    <i data-lucide="calendar-check" class="icon-sm"></i>
+    <span>Manage All Appointments</span>
+  </a>
 </div>
 
 <!-- Key Clinic Metrics -->
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-icon">👥</div>
+    <div class="stat-icon">
+      <i data-lucide="users"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.totalPatients %></div>
       <div class="stat-label">Registered Patients</div>
@@ -19,7 +24,9 @@
   </div>
 
   <div class="stat-card">
-    <div class="stat-icon accepted">🩺</div>
+    <div class="stat-icon accepted">
+      <i data-lucide="stethoscope"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.totalDoctors %></div>
       <div class="stat-label">Active Doctors</div>
@@ -27,7 +34,9 @@
   </div>
 
   <div class="stat-card">
-    <div class="stat-icon">📑</div>
+    <div class="stat-icon">
+      <i data-lucide="calendar-check"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.totalAppointments %></div>
       <div class="stat-label">Total Appointments</div>
@@ -35,7 +44,9 @@
   </div>
 
   <div class="stat-card">
-    <div class="stat-icon pending">⏳</div>
+    <div class="stat-icon pending">
+      <i data-lucide="clock"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.pendingCount %></div>
       <div class="stat-label">Pending Approval</div>
@@ -79,7 +90,10 @@
       </table>
     </div>
   <% } else { %>
-    <div style="text-align: center; padding: 2.5rem 1rem;">
+    <div style="text-align: center; padding: 3rem 1rem;">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; color: var(--text-muted);">
+        <i data-lucide="users" class="icon-lg"></i>
+      </div>
       <p class="text-muted">No doctors registered yet.</p>
     </div>
   <% } %>

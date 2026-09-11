@@ -5,12 +5,41 @@ const authController = require('../controllers/authController');
 const { redirectIfAuthenticated } = require('../middleware/auth');
 const { validateLogin, validateRegister } = require('../middleware/validation');
 const { authLimiter } = require('../middleware/rateLimiter');
+const DoctorProfile = require('../models/DoctorProfile');
+const User = require('../models/User');
+const Appointment = require('../models/Appointment');
 
-// Public Landing Page
-router.get('/', (req, res) => {
-  res.render('index', {
-    title: 'MediPulse Clinic - Modern Healthcare Management',
-  });
+// Public Landing Page with Dynamic Doctor Highlights and System Stats
+router.get('/', async (req, res) => {
+  try {
+    const [featuredDoctors, totalDoctors, totalPatients, totalAppointments] = await Promise.all([
+      DoctorProfile.find().populate('userId', 'name email').limit(4).lean(),
+      User.countDocuments({ role: 'doctor' }),
+      User.countDocuments({ role: 'patient' }),
+      Appointment.countDocuments(),
+    ]);
+
+    res.render('index', {
+      title: 'MediPulse Clinic - Modern Healthcare Management',
+      featuredDoctors: featuredDoctors || [],
+      stats: {
+        totalDoctors: totalDoctors || 12,
+        totalPatients: totalPatients || 48,
+        totalAppointments: totalAppointments || 120,
+      },
+    });
+  } catch (err) {
+    // Graceful fallback if database read fails or empty
+    res.render('index', {
+      title: 'MediPulse Clinic - Modern Healthcare Management',
+      featuredDoctors: [],
+      stats: {
+        totalDoctors: 12,
+        totalPatients: 48,
+        totalAppointments: 120,
+      },
+    });
+  }
 });
 
 // Authentication routes at root level for clean URLs

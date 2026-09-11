@@ -6,15 +6,23 @@
     <p class="page-subtitle">Welcome Dr. <%= currentUser.name %> • Today: <%= todayStr %></p>
   </div>
   <div style="display: flex; gap: 0.75rem;">
-    <a href="/doctor/profile" class="btn btn-outline">⚙️ Manage Schedule</a>
-    <a href="/doctor/appointments" class="btn btn-primary">All Appointments</a>
+    <a href="/doctor/profile" class="btn btn-outline">
+      <i data-lucide="settings" class="icon-sm"></i>
+      <span>Manage Schedule</span>
+    </a>
+    <a href="/doctor/appointments" class="btn btn-primary">
+      <i data-lucide="calendar-check" class="icon-sm"></i>
+      <span>All Appointments</span>
+    </a>
   </div>
 </div>
 
 <!-- Stats Overview -->
 <div class="stats-grid">
   <div class="stat-card">
-    <div class="stat-icon accepted">🩺</div>
+    <div class="stat-icon accepted">
+      <i data-lucide="calendar"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.todayCount %></div>
       <div class="stat-label">Scheduled For Today</div>
@@ -22,7 +30,9 @@
   </div>
 
   <div class="stat-card">
-    <div class="stat-icon pending">⏳</div>
+    <div class="stat-icon pending">
+      <i data-lucide="clock"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.pendingCount %></div>
       <div class="stat-label">Pending Review</div>
@@ -30,10 +40,12 @@
   </div>
 
   <div class="stat-card">
-    <div class="stat-icon completed">✅</div>
+    <div class="stat-icon completed">
+      <i data-lucide="check-circle-2"></i>
+    </div>
     <div class="stat-info">
       <div class="stat-value"><%= stats.completedCount %></div>
-      <div class="stat-label">Total Completed Visits</div>
+      <div class="stat-label">Completed Consultations</div>
     </div>
   </div>
 </div>
@@ -42,7 +54,10 @@
 <div class="card">
   <div class="card-header">
     <h2 class="card-title">Today's Schedule (<%= todayStr %>)</h2>
-    <a href="/doctor/appointments?date=<%= todayStr %>" class="btn btn-ghost btn-sm">Full Day List →</a>
+    <a href="/doctor/appointments?date=<%= todayStr %>" class="btn btn-ghost btn-sm">
+      <span>Full Day List</span>
+      <i data-lucide="arrow-right" class="icon-sm"></i>
+    </a>
   </div>
 
   <% if (todayAppointments && todayAppointments.length > 0) { %>
@@ -62,25 +77,37 @@
             <tr data-appointment-id="<%= apt._id %>">
               <td><strong><%= apt.appointmentTime %></strong></td>
               <td><strong><%= apt.patientId ? apt.patientId.name : 'Unknown Patient' %></strong></td>
-              <td><%= apt.patientId ? apt.patientId.email : '—' %></td>
+              <td><%= apt.patientId ? apt.patientId.email : 'None' %></td>
               <td>
                 <%- include('../partials/statusBadge', { status: apt.status }) %>
               </td>
               <td data-appointment-actions="<%= apt._id %>">
-                <div style="display: flex; gap: 0.4rem; align-items: center;">
+                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
                   <% if (apt.status === 'pending') { %>
-                    <form action="/appointments/<%= apt._id %>/accept" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                    <form action="/appointments/<%= apt._id %>/accept" method="POST" style="display: inline; margin: 0;">
+                      <button type="submit" class="btn btn-success btn-sm">
+                        <i data-lucide="check" class="icon-sm"></i>
+                        <span>Accept</span>
+                      </button>
                     </form>
-                    <form action="/appointments/<%= apt._id %>/reject" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    <form action="/appointments/<%= apt._id %>/reject" method="POST" style="display: inline; margin: 0;">
+                      <button type="submit" class="btn btn-danger btn-sm">
+                        <i data-lucide="x" class="icon-sm"></i>
+                        <span>Reject</span>
+                      </button>
                     </form>
                   <% } else if (apt.status === 'accepted') { %>
-                    <form action="/appointments/<%= apt._id %>/complete" method="POST" style="display: inline;">
-                      <button type="submit" class="btn btn-accent btn-sm">Mark Complete</button>
+                    <form action="/appointments/<%= apt._id %>/complete" method="POST" style="display: inline; margin: 0;">
+                      <button type="submit" class="btn btn-accent btn-sm">
+                        <i data-lucide="check-circle" class="icon-sm"></i>
+                        <span>Complete</span>
+                      </button>
                     </form>
                   <% } %>
-                  <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">Details</a>
+                  <a href="/appointments/<%= apt._id %>" class="btn btn-outline btn-sm">
+                    <i data-lucide="file-text" class="icon-sm"></i>
+                    <span>Details</span>
+                  </a>
                 </div>
               </td>
             </tr>
@@ -89,7 +116,10 @@
       </table>
     </div>
   <% } else { %>
-    <div style="text-align: center; padding: 2.5rem 1rem;">
+    <div style="text-align: center; padding: 3rem 1rem;">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; color: var(--text-muted);">
+        <i data-lucide="calendar-check" class="icon-lg"></i>
+      </div>
       <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 0.5rem;">No active consultations scheduled for today.</p>
       <p class="text-muted">You can review upcoming patient requests in the <a href="/doctor/appointments">Appointments</a> tab.</p>
     </div>

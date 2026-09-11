@@ -1,7 +1,9 @@
 <nav class="navbar">
   <div class="container nav-container">
     <a href="/" class="brand">
-      <span class="brand-icon">🏥</span>
+      <div class="brand-icon-box">
+        <i data-lucide="activity"></i>
+      </div>
       <span class="brand-text">MediPulse <span class="brand-accent">Clinic</span></span>
     </a>
 
@@ -13,23 +15,73 @@
 
     <div class="nav-menu" id="navMenu">
       <ul class="nav-links">
-        <li><a href="/" class="nav-link">Home</a></li>
+        <li>
+          <a href="/" class="nav-link">
+            <i data-lucide="home" class="icon-sm"></i>
+            <span>Home</span>
+          </a>
+        </li>
 
         <% if (typeof currentUser !== 'undefined' && currentUser) { %>
           <% if (currentUser.role === 'patient') { %>
-            <li><a href="/patient/dashboard" class="nav-link">Dashboard</a></li>
-            <li><a href="/patient/doctors" class="nav-link">Find Doctors</a></li>
-            <li><a href="/patient/appointments" class="nav-link">My Appointments</a></li>
+            <li>
+              <a href="/patient/dashboard" class="nav-link">
+                <i data-lucide="layout-dashboard" class="icon-sm"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/patient/doctors" class="nav-link">
+                <i data-lucide="stethoscope" class="icon-sm"></i>
+                <span>Find Doctors</span>
+              </a>
+            </li>
+            <li>
+              <a href="/patient/appointments" class="nav-link">
+                <i data-lucide="calendar" class="icon-sm"></i>
+                <span>My Appointments</span>
+              </a>
+            </li>
           <% } else if (currentUser.role === 'doctor') { %>
-            <li><a href="/doctor/dashboard" class="nav-link">Dashboard</a></li>
-            <li><a href="/doctor/appointments" class="nav-link">Appointments</a></li>
-            <li><a href="/doctor/profile" class="nav-link">My Schedule</a></li>
+            <li>
+              <a href="/doctor/dashboard" class="nav-link">
+                <i data-lucide="layout-dashboard" class="icon-sm"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/doctor/appointments" class="nav-link">
+                <i data-lucide="calendar-check" class="icon-sm"></i>
+                <span>Appointments</span>
+              </a>
+            </li>
+            <li>
+              <a href="/doctor/profile" class="nav-link">
+                <i data-lucide="clock" class="icon-sm"></i>
+                <span>My Schedule</span>
+              </a>
+            </li>
           <% } else if (currentUser.role === 'admin') { %>
-            <li><a href="/admin/dashboard" class="nav-link">Admin Dashboard</a></li>
-            <li><a href="/doctor/appointments" class="nav-link">All Appointments</a></li>
+            <li>
+              <a href="/admin/dashboard" class="nav-link">
+                <i data-lucide="shield" class="icon-sm"></i>
+                <span>Admin Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="/doctor/appointments" class="nav-link">
+                <i data-lucide="calendar-check" class="icon-sm"></i>
+                <span>All Appointments</span>
+              </a>
+            </li>
           <% } %>
         <% } else { %>
-          <li><a href="/patient/doctors" class="nav-link">Doctors</a></li>
+          <li>
+            <a href="/patient/doctors" class="nav-link">
+              <i data-lucide="stethoscope" class="icon-sm"></i>
+              <span>Doctors Directory</span>
+            </a>
+          </li>
         <% } %>
       </ul>
 
@@ -39,12 +91,18 @@
             <span class="role-badge role-<%= currentUser.role %>"><%= currentUser.role.toUpperCase() %></span>
             <span class="user-name"><%= currentUser.name %></span>
           </div>
-          <form action="/auth/logout" method="POST" class="inline-form">
-            <button type="submit" class="btn btn-outline btn-sm">Logout</button>
+          <form action="/auth/logout" method="POST" class="inline-form" style="margin: 0;">
+            <button type="submit" class="btn btn-outline btn-sm">
+              <i data-lucide="log-out" class="icon-sm"></i>
+              <span>Logout</span>
+            </button>
           </form>
         <% } else { %>
           <a href="/auth/login" class="btn btn-ghost btn-sm">Log In</a>
-          <a href="/auth/register" class="btn btn-primary btn-sm">Register</a>
+          <a href="/auth/register" class="btn btn-primary btn-sm">
+            <i data-lucide="user-plus" class="icon-sm"></i>
+            <span>Register</span>
+          </a>
         <% } %>
       </div>
     </div>

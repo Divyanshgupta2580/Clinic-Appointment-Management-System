@@ -2,7 +2,10 @@
 
 <div class="page-header">
   <div>
-    <a href="/patient/doctors" class="btn btn-ghost btn-sm" style="margin-bottom: 0.5rem;">← Back to Doctors</a>
+    <a href="/patient/doctors" class="btn btn-ghost btn-sm" style="margin-bottom: 0.6rem;">
+      <i data-lucide="arrow-left" class="icon-sm"></i>
+      <span>Back to Doctors</span>
+    </a>
     <h1 class="page-title">Book an Appointment</h1>
     <p class="page-subtitle">Schedule your consultation with Dr. <%= doctor.name %></p>
   </div>
@@ -14,8 +17,11 @@
     <div class="doctor-avatar" style="width: 72px; height: 72px; font-size: 1.75rem;">
       <%= doctor.name.charAt(0).toUpperCase() %>
     </div>
-    <h2 style="font-size: 1.4rem; font-weight: 700;">Dr. <%= doctor.name %></h2>
-    <div class="doctor-spec" style="font-size: 1rem; margin-bottom: 1rem;"><%= profile.specialization %></div>
+    <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--text-primary);">Dr. <%= doctor.name %></h2>
+    <div class="doctor-spec" style="font-size: 1rem; margin-bottom: 1.25rem;">
+      <i data-lucide="activity" class="icon-sm"></i>
+      <span><%= profile.specialization %></span>
+    </div>
 
     <ul class="doctor-details-list" style="font-size: 0.95rem; gap: 0.75rem;">
       <li><strong>Qualification:</strong> <%= profile.qualification %></li>
@@ -23,13 +29,15 @@
       <li><strong>Consultation Length:</strong> <%= profile.consultationDuration || 30 %> Minutes</li>
       <li><strong>Weekly Schedule:</strong> <%= profile.availableDays ? profile.availableDays.join(', ') : 'Mon - Fri' %></li>
       <li><strong>Working Hours:</strong> <%= profile.availableStartTime %> to <%= profile.availableEndTime %></li>
-      <li><strong>Contact Clinic:</strong> <%= doctor.email %></li>
+      <li><strong>Clinic Contact:</strong> <%= doctor.email %></li>
     </ul>
 
     <div class="alert alert-info" style="margin-top: 1.5rem; margin-bottom: 0;">
-      <span class="alert-icon">ℹ</span>
+      <span class="alert-icon">
+        <i data-lucide="shield-check"></i>
+      </span>
       <div class="alert-body">
-        <p>MediPulse enforces zero double-booking locks. Slots are reserved instantly upon confirmation.</p>
+        <p>MediPulse enforces atomic zero double-booking locks. Slots are reserved instantly upon confirmation.</p>
       </div>
     </div>
   </div>
@@ -81,7 +89,8 @@
       </div>
 
       <button type="submit" id="bookSubmitBtn" class="btn btn-primary btn-block btn-lg" disabled>
-        Confirm & Book Appointment
+        <i data-lucide="check-circle" class="icon-sm"></i>
+        <span>Confirm & Book Appointment</span>
       </button>
     </form>
   </div>

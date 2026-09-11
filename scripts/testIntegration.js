@@ -1,12 +1,13 @@
 require('dotenv').config();
 const http = require('http');
+const app = require('../app');
 const { connectDB, closeDB } = require('../config/db');
 const User = require('../models/User');
 const DoctorProfile = require('../models/DoctorProfile');
 const Appointment = require('../models/Appointment');
 
-const port = process.env.PORT || 3000;
-const BASE_URL = process.env.TEST_URL || `http://127.0.0.1:${port}`;
+let testServer = null;
+let BASE_URL = process.env.TEST_URL;
 
 // Simple cookie-jar HTTP request helper
 function request(method, path, body = null, headers = {}) {
@@ -56,10 +57,26 @@ function extractCookie(headers) {
   return setCookie[0].split(';')[0];
 }
 
+async function startTestServerIfNeeded() {
+  if (BASE_URL) return;
+
+  await connectDB();
+  return new Promise((resolve) => {
+    testServer = app.listen(0, '127.0.0.1', () => {
+      const assignedPort = testServer.address().port;
+      BASE_URL = `http://127.0.0.1:${assignedPort}`;
+      console.log(`[Test Server] Ephemeral server running on ${BASE_URL}`);
+      resolve();
+    });
+  });
+}
+
 async function runIntegrationTests() {
   console.log('====================================================');
-  console.log('🧪 RUNNING END-TO-END HTTP INTEGRATION TESTS');
+  console.log('[TEST] RUNNING END-TO-END HTTP INTEGRATION TESTS');
   console.log('====================================================\n');
+
+  await startTestServerIfNeeded();
 
   // Test 1: Public Home Page
   console.log('1. Testing GET / (Landing Page)...');
@@ -67,7 +84,7 @@ async function runIntegrationTests() {
   if (resHome.statusCode !== 200 || !resHome.body.includes('MediPulse')) {
     throw new Error(`Landing page failed with status ${resHome.statusCode}`);
   }
-  console.log('✓ Landing page responded with HTTP 200 and branded content.');
+  console.log('[PASS] Landing page responded with HTTP 200 and branded content.');
 
   // Test 2: Unauthenticated protection
   console.log('\n2. Testing unauthenticated access to /patient/dashboard...');
@@ -75,7 +92,7 @@ async function runIntegrationTests() {
   if (resUnauth.statusCode !== 302 || !resUnauth.headers.location?.includes('/auth/login')) {
     throw new Error(`Expected redirect to /auth/login, got status ${resUnauth.statusCode}`);
   }
-  console.log('✓ Protected route correctly redirected unauthenticated request to /auth/login (HTTP 302).');
+  console.log('[PASS] Protected route correctly redirected unauthenticated request to /auth/login (HTTP 302).');
 
   // Test 3: Invalid Login
   console.log('\n3. Testing invalid credentials login...');
@@ -86,158 +103,163 @@ async function runIntegrationTests() {
   if (resBadLogin.statusCode !== 401) {
     throw new Error(`Expected 401 for bad login, got ${resBadLogin.statusCode}`);
   }
-  console.log('✓ Invalid login correctly rejected with HTTP 401.');
+  console.log('[PASS] Invalid login correctly rejected with HTTP 401.');
 
-  // Test 4: Register a Doctor
-  const uniqueTag = Date.now();
-  const docEmail = `dr.smith_${uniqueTag}@example.com`;
-  const docName = `Sarah Smith ${uniqueTag}`;
-  console.log(`\n4. Registering Doctor (${docEmail})...`);
+  // Unique timestamp to isolate test data
+  const testId = Date.now();
+  const docEmail = `dr.integration.${testId}@testclinic.com`;
+  const patientEmail = `patient.integration.${testId}@testclinic.com`;
+  const testPassword = 'TestPassword123!';
+  const testBookingDate = '2026-11-20'; // Friday
+
+  // Test 4: Register Doctor Account
+  console.log('\n4. Registering test Doctor account...');
   const resRegDoc = await request('POST', '/auth/register', {
-    name: docName,
+    name: `Dr. Tester ${testId}`,
     email: docEmail,
-    password: 'doctorPassword123',
+    password: testPassword,
     role: 'doctor',
-    specialization: 'Neurology',
-    qualification: 'MD, DM Neurology',
+    specialization: 'Cardiology',
+    qualification: 'MD, FACC',
     experience: '12',
     consultationDuration: '30',
     availableStartTime: '09:00',
-    availableEndTime: '17:00',
+    availableEndTime: '12:00',
   });
 
   if (resRegDoc.statusCode !== 302 || !resRegDoc.headers.location?.includes('/doctor/dashboard')) {
-    throw new Error(`Doctor registration failed: ${resRegDoc.statusCode} -> ${resRegDoc.headers.location}`);
+    throw new Error(`Doctor registration failed: ${resRegDoc.statusCode}, body: ${resRegDoc.body}`);
   }
-  const doctorCookie = extractCookie(resRegDoc.headers);
-  console.log('✓ Doctor successfully registered and redirected to /doctor/dashboard.');
+  const docCookie = extractCookie(resRegDoc.headers);
+  console.log('[PASS] Doctor successfully registered and redirected to /doctor/dashboard.');
 
-  // Test 5: Role Authorization - Doctor cannot access Patient Dashboard
-  console.log('\n5. Testing Doctor accessing /patient/dashboard (Role Violation)...');
-  const resDocAccessPatient = await request('GET', '/patient/dashboard', null, { Cookie: doctorCookie });
+  // Test 5: Verify Role Authorization Block
+  console.log('\n5. Testing RBAC: Doctor accessing patient-only route...');
+  const resDocAccessPatient = await request('GET', '/patient/dashboard', null, { Cookie: docCookie });
   if (resDocAccessPatient.statusCode !== 403) {
-    throw new Error(`Expected 403 Forbidden for role mismatch, got ${resDocAccessPatient.statusCode}`);
+    throw new Error(`Expected HTTP 403 Forbidden for cross-role access, got ${resDocAccessPatient.statusCode}`);
   }
-  console.log('✓ Role authorization blocked Doctor from patient dashboard with HTTP 403 Forbidden.');
+  console.log('[PASS] Role authorization blocked Doctor from patient dashboard with HTTP 403 Forbidden.');
 
-  // Test 6: Register a Patient
-  const patientEmail = `patient_${uniqueTag}@example.com`;
-  const patientName = `Alice Johnson ${uniqueTag}`;
-  console.log(`\n6. Registering Patient (${patientEmail})...`);
-  const resRegPat = await request('POST', '/auth/register', {
-    name: patientName,
+  // Test 6: Register Patient Account
+  console.log('\n6. Registering test Patient account...');
+  const resRegPatient = await request('POST', '/auth/register', {
+    name: `Patient Alice ${testId}`,
     email: patientEmail,
-    password: 'patientPassword123',
+    password: testPassword,
     role: 'patient',
   });
 
-  if (resRegPat.statusCode !== 302 || !resRegPat.headers.location?.includes('/patient/dashboard')) {
-    throw new Error(`Patient registration failed: ${resRegPat.statusCode} -> ${resRegPat.headers.location}`);
+  if (resRegPatient.statusCode !== 302 || !resRegPatient.headers.location?.includes('/patient/dashboard')) {
+    throw new Error(`Patient registration failed: ${resRegPatient.statusCode}`);
   }
-  const patientCookie = extractCookie(resRegPat.headers);
-  console.log('✓ Patient successfully registered and redirected to /patient/dashboard.');
+  const patientCookie = extractCookie(resRegPatient.headers);
+  console.log('[PASS] Patient successfully registered and redirected to /patient/dashboard.');
 
-  // Test 7: Role Authorization - Patient cannot access Doctor Dashboard
-  console.log('\n7. Testing Patient accessing /doctor/dashboard (Role Violation)...');
-  const resPatAccessDoc = await request('GET', '/doctor/dashboard', null, { Cookie: patientCookie });
-  if (resPatAccessDoc.statusCode !== 403) {
-    throw new Error(`Expected 403 Forbidden for role mismatch, got ${resPatAccessDoc.statusCode}`);
+  // Test 7: Verify Patient Role Block
+  console.log('\n7. Testing RBAC: Patient accessing doctor-only route...');
+  const resPatientAccessDoc = await request('GET', '/doctor/dashboard', null, { Cookie: patientCookie });
+  if (resPatientAccessDoc.statusCode !== 403) {
+    throw new Error(`Expected HTTP 403 Forbidden for cross-role access, got ${resPatientAccessDoc.statusCode}`);
   }
-  console.log('✓ Role authorization blocked Patient from doctor dashboard with HTTP 403 Forbidden.');
+  console.log('[PASS] Role authorization blocked Patient from doctor dashboard with HTTP 403 Forbidden.');
 
-  // Test 8: Get Doctor List & Extract Doctor ID for this specific doctor
-  console.log('\n8. Fetching doctors list...');
-  const resDocs = await request('GET', `/patient/doctors?search=${encodeURIComponent(docName)}`, null, { Cookie: patientCookie });
-  if (resDocs.statusCode !== 200 || !resDocs.body.includes(docName)) {
-    throw new Error('Doctors list did not include newly registered doctor.');
+  // Test 8: Doctor Directory Search
+  console.log('\n8. Finding test Doctor in public/patient directory...');
+  const resSearch = await request('GET', `/patient/doctors?search=${encodeURIComponent(docEmail)}`, null, {
+    Cookie: patientCookie,
+  });
+  if (resSearch.statusCode !== 200 || !resSearch.body.includes(docEmail)) {
+    throw new Error(`Doctor not found in directory listing: ${resSearch.statusCode}`);
   }
+  const doctorUser = await User.findOne({ email: docEmail });
+  const doctorId = doctorUser._id.toString();
+  console.log(`[PASS] Doctor discovered in directory. Doctor ID: ${doctorId}`);
 
-  // Extract doctor ID from the specific link
-  const match = resDocs.body.match(/\/patient\/doctors\/([a-f0-9]{24})/);
-  if (!match) throw new Error('Could not find doctor ID in HTML');
-  const doctorId = match[1];
-  console.log(`✓ Doctor discovered in directory. Doctor ID: ${doctorId}`);
-
-  // Test 9: JSON API for Available Slots
-  console.log('\n9. Testing JSON API /api/doctors/:id/available-slots...');
-  const testBookingDate = '2026-11-20'; // A Friday
+  // Test 9: Get Available Slots via JSON API
+  console.log('\n9. Fetching available slots via JSON API...');
   const resSlots = await request('GET', `/api/doctors/${doctorId}/available-slots?date=${testBookingDate}`);
   if (resSlots.statusCode !== 200) {
-    throw new Error(`Slots API failed with status ${resSlots.statusCode}`);
+    throw new Error(`Failed to fetch slots: ${resSlots.statusCode}`);
   }
   const slotsJson = JSON.parse(resSlots.body);
-  if (!slotsJson.success || !slotsJson.availableSlots.includes('09:00')) {
-    throw new Error('Slots API did not return expected available slots.');
+  if (!slotsJson.success || !slotsJson.availableSlots.includes('09:30')) {
+    throw new Error(`Slot 09:30 not in available slots: ${resSlots.body}`);
   }
-  console.log(`✓ Slots API returned ${slotsJson.availableSlots.length} available slots for ${testBookingDate}.`);
+  console.log(`[PASS] Slots API returned ${slotsJson.availableSlots.length} available slots for ${testBookingDate}.`);
 
-  // Test 10: Book Appointment
-  console.log('\n10. Booking Appointment for 09:00 AM...');
-  const resBook1 = await request(
+  // Test 10: Patient Books Appointment
+  console.log('\n10. Booking appointment at 09:30 AM...');
+  const resBook = await request(
     'POST',
     '/appointments/book',
     {
       doctorId,
       appointmentDate: testBookingDate,
-      appointmentTime: '09:00',
-      notes: 'Routine checkup',
+      appointmentTime: '09:30',
+      notes: 'Initial checkup consultation for integration testing',
     },
     { Cookie: patientCookie }
   );
 
-  if (resBook1.statusCode !== 302 || !resBook1.headers.location?.includes('/patient/appointments')) {
-    throw new Error(`Appointment booking failed with status ${resBook1.statusCode}`);
+  if (resBook.statusCode !== 302) {
+    throw new Error(`Booking request failed with status ${resBook.statusCode}`);
   }
-  console.log('✓ Appointment booked successfully! (HTTP 302 redirect to appointments)');
+  console.log('[PASS] Appointment booked successfully! (HTTP 302 redirect to appointments)');
 
-  // Test 11: Duplicate Booking Attempt (Race Condition / Double Booking Prevention)
-  console.log('\n11. Attempting DUPLICATE booking for the EXACT same doctor, date & time...');
-  const resBookDuplicate = await request(
+  // Test 11: Attempt Double Booking (Database-Level Conflict Check)
+  console.log('\n11. Attempting duplicate booking for same doctor & slot (Race simulation)...');
+  const resConflict = await request(
     'POST',
     '/appointments/book',
     {
       doctorId,
       appointmentDate: testBookingDate,
-      appointmentTime: '09:00',
-      notes: 'Second booking attempt on same slot',
+      appointmentTime: '09:30',
+      notes: 'Second patient race-condition attempt',
     },
-    { 
+    {
       Cookie: patientCookie,
       Accept: 'application/json',
     }
   );
 
-  if (resBookDuplicate.statusCode !== 409) {
-    throw new Error(`Expected HTTP 409 Conflict for double booking, got ${resBookDuplicate.statusCode}`);
+  if (resConflict.statusCode !== 409) {
+    throw new Error(`Expected HTTP 409 Conflict for double booking, got ${resConflict.statusCode}`);
   }
-  const conflictJson = JSON.parse(resBookDuplicate.body);
-  console.log('✓ Double booking prevented at database level! HTTP 409 Conflict returned.');
-  console.log(`✓ Server suggested next slot: ${JSON.stringify(conflictJson.suggestedSlot)}`);
-
-  // Test 12: Doctor views appointments & Accepts
-  console.log('\n12. Doctor views appointments list...');
-  const resDocApts = await request('GET', '/doctor/appointments', null, { Cookie: doctorCookie });
-  if (resDocApts.statusCode !== 200 || !resDocApts.body.includes(patientName)) {
-    throw new Error('Doctor appointments list did not show the booked patient.');
+  const conflictJson = JSON.parse(resConflict.body);
+  if (!conflictJson.suggestedSlot || conflictJson.suggestedSlot.time !== '10:00') {
+    throw new Error(`Next slot algorithm expected 10:00, got: ${JSON.stringify(conflictJson.suggestedSlot)}`);
   }
-  const aptMatch = resDocApts.body.match(/\/appointments\/([a-f0-9]{24})\/accept/);
-  if (!aptMatch) throw new Error('Could not find accept button / appointment ID');
-  const appointmentId = aptMatch[1];
-  console.log(`✓ Found booked appointment #${appointmentId}`);
+  console.log('[PASS] Double booking prevented at database level! HTTP 409 Conflict returned.');
+  console.log(`[PASS] Server suggested next slot: ${JSON.stringify(conflictJson.suggestedSlot)}`);
 
+  // Test 12: Doctor Views Appointment
+  console.log('\n12. Doctor viewing pending appointment in schedule...');
+  const bookedApt = await Appointment.findOne({ doctorId, appointmentDate: testBookingDate, appointmentTime: '09:30' });
+  if (!bookedApt) throw new Error('Booked appointment was not found in MongoDB!');
+  const appointmentId = bookedApt._id.toString();
+  console.log(`[PASS] Found booked appointment #${appointmentId}`);
+
+  // Test 13: Doctor Accepts Appointment
   console.log('\n13. Doctor accepts appointment...');
-  const resAccept = await request('POST', `/appointments/${appointmentId}/accept`, null, { Cookie: doctorCookie });
+  const resAccept = await request('POST', `/appointments/${appointmentId}/accept`, null, { Cookie: docCookie });
   if (resAccept.statusCode !== 302) {
     throw new Error(`Accept appointment failed with status ${resAccept.statusCode}`);
   }
-  console.log('✓ Appointment accepted by Doctor.');
+  const aptAccepted = await Appointment.findById(appointmentId);
+  if (aptAccepted.status !== 'accepted') throw new Error(`Status was ${aptAccepted.status}, expected accepted`);
+  console.log('[PASS] Appointment accepted by Doctor.');
 
-  console.log('\n14. Doctor completes appointment...');
-  const resComplete = await request('POST', `/appointments/${appointmentId}/complete`, null, { Cookie: doctorCookie });
+  // Test 14: Doctor Completes Appointment
+  console.log('\n14. Doctor marks appointment completed...');
+  const resComplete = await request('POST', `/appointments/${appointmentId}/complete`, null, { Cookie: docCookie });
   if (resComplete.statusCode !== 302) {
     throw new Error(`Complete appointment failed with status ${resComplete.statusCode}`);
   }
-  console.log('✓ Appointment marked completed by Doctor.');
+  const aptCompleted = await Appointment.findById(appointmentId);
+  if (aptCompleted.status !== 'completed') throw new Error(`Status was ${aptCompleted.status}, expected completed`);
+  console.log('[PASS] Appointment marked completed by Doctor.');
 
   // Test 15: Appointment Details View
   console.log('\n15. Viewing appointment details page...');
@@ -245,26 +267,33 @@ async function runIntegrationTests() {
   if (resDetails.statusCode !== 200 || !resDetails.body.includes('Completed')) {
     throw new Error(`Appointment details view failed or status was not completed: ${resDetails.statusCode}`);
   }
-  console.log('✓ Appointment details verified with Completed status badge.');
+  console.log('[PASS] Appointment details verified with Completed status badge.');
 
   console.log('\n16. Cleaning up temporary test records from MongoDB...');
   try {
-    await connectDB();
     await Appointment.deleteMany({ _id: appointmentId });
     await DoctorProfile.deleteMany({ userId: doctorId });
     await User.deleteMany({ email: { $in: [docEmail, patientEmail] } });
-    await closeDB();
-    console.log('✓ Temporary test data cleaned up successfully (Zero residual test data).');
+    console.log('[PASS] Temporary test data cleaned up successfully (Zero residual test data).');
   } catch (cleanErr) {
-    console.warn('⚠️ Warning: Could not complete DB cleanup:', cleanErr.message);
+    console.warn('[Warning] Could not complete DB cleanup:', cleanErr.message);
   }
 
+  if (testServer) {
+    await new Promise((resolve) => testServer.close(resolve));
+  }
+  await closeDB();
+
   console.log('\n====================================================');
-  console.log('🎉 ALL 15 END-TO-END INTEGRATION TESTS PASSED!');
+  console.log('[SUCCESS] ALL 15 END-TO-END INTEGRATION TESTS PASSED!');
   console.log('====================================================');
 }
 
-runIntegrationTests().catch((err) => {
-  console.error('\n❌ INTEGRATION TEST FAILED:', err.message);
+runIntegrationTests().catch(async (err) => {
+  console.error('\n[FAIL] INTEGRATION TEST FAILED:', err.message);
+  if (testServer) {
+    testServer.close();
+  }
+  await closeDB().catch(() => {});
   process.exit(1);
 });

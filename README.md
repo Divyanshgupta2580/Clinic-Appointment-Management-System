@@ -89,12 +89,43 @@ MediPulse Clinic eliminates booking race conditions by delegating slot exclusivi
 
 ---
 
+## Demo Accounts & Safe Seeding
+
+The application includes a dedicated, idempotent database seed script that inserts realistic demo data into MongoDB without dropping collections, wiping databases, or deleting existing user data.
+
+### Seeding Command:
+```bash
+npm run seed
+```
+> **Note:** The seed script is completely decoupled from `npm start` and will never automatically run on application startup in production.
+
+### Pre-Configured Demo Credentials:
+All demo accounts use the standard password: `DemoPassword123!` (securely hashed with `bcryptjs`).
+
+| Role | Name | Email | Password | Scope & Responsibilities |
+|---|---|---|---|---|
+| **Admin** | Admin Administrator | `admin@medipulse.demo` | `DemoPassword123!` | System oversight, full physician roster, all appointments |
+| **Doctor** | Dr. Marcus Vance | `dr.marcus.vance@medipulse.demo` | `DemoPassword123!` | Cardiology (14 yrs exp, 09:00 - 17:00, Mon-Fri) |
+| **Doctor** | Dr. Elena Rostova | `dr.elena.rostova@medipulse.demo` | `DemoPassword123!` | Dermatology (9 yrs exp, 09:00 - 16:30, Mon-Fri) |
+| **Doctor** | Dr. Arthur Pendelton | `dr.arthur.pendelton@medipulse.demo` | `DemoPassword123!` | Orthopedics (16 yrs exp, 10:00 - 18:00, Mon-Sat) |
+| **Doctor** | Dr. Maya Lin | `dr.maya.lin@medipulse.demo` | `DemoPassword123!` | Pediatrics (8 yrs exp, 08:30 - 16:00, Mon-Fri) |
+| **Doctor** | Dr. David Kim | `dr.david.kim@medipulse.demo` | `DemoPassword123!` | General Medicine (12 yrs exp, 09:00 - 17:00, Mon-Sat) |
+| **Patient** | Sarah Jenkins | `patient.sarah@medipulse.demo` | `DemoPassword123!` | Active patient with consultations across departments |
+| **Patient** | Michael Chang | `patient.michael@medipulse.demo` | `DemoPassword123!` | Patient with scheduled dermatology & psychiatry visits |
+| **Patient** | Emily Watson | `patient.emily@medipulse.demo` | `DemoPassword123!` | Patient with completed wellness exams |
+
+*A total of 11 doctors across 10 medical specialties (Cardiology, Dermatology, Orthopedics, Pediatrics, General Medicine, Neurology, ENT, Ophthalmology, Gynecology, Psychiatry), 8 patients, and 20 non-conflicting appointments spanning all lifecycle states (`pending`, `accepted`, `completed`, `rejected`) are safely seeded.*
+
+---
+
 ## Technology Stack
 
-- **Runtime Environment:** [Node.js](https://nodejs.org/) (v20+ Recommended)
+- **Runtime Environment:** [Node.js](https://nodejs.org/) (v18+ / v20+ Recommended)
 - **Web Framework:** [Express.js](https://expressjs.com/) (v4.21+)
 - **View Engine:** [EJS](https://ejs.co/) (Embedded JavaScript Templates)
-- **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas) / Local MongoDB
+- **UI Design System:** Dark Healthcare SaaS theme with centralized CSS custom properties
+- **Iconography:** [Lucide Icons](https://lucide.dev/) (Locally bundled line icons, zero emojis)
+- **Database:** [MongoDB Atlas](https://www.mongodb.com/atlas)
 - **Object Data Modeling (ODM):** [Mongoose](https://mongoosejs.com/) (v8.10+)
 - **Session Management:** `express-session` (Signed cookie: `medipulse.sid`)
 - **Password Hashing:** `bcryptjs` (Salt factor: 10)
@@ -344,10 +375,12 @@ Clinic-Appointment-Management-System/
 │   └── errors/                     # 403, 404, 500 error pages
 │
 ├── public/                         # Static Assets
-│   ├── css/styles.css              # Vanilla responsive CSS design system
-│   └── js/booking.js               # Vanilla JS dynamic slot picker
+│   ├── css/styles.css              # Vanilla responsive dark healthcare SaaS CSS
+│   ├── js/booking.js               # Vanilla JS dynamic slot picker
+│   └── js/lucide.min.js            # Locally bundled Lucide line icons
 │
-├── scripts/                        # Automated Test Suites
+├── scripts/                        # Database & Test Scripts
+│   ├── seed.js                     # Safe, idempotent demo data seed script
 │   ├── testSlots.js                # Unit tests for slot calculations
 │   ├── testDoubleBooking.js        # Concurrency & duplicate index tests
 │   ├── testIntegration.js          # 15-step end-to-end HTTP integration tests
@@ -419,6 +452,9 @@ cp .env.example .env
 ## Running Locally
 
 ```bash
+# (Optional) Seed realistic demo accounts and appointments
+npm run seed
+
 # Start the server
 npm start
 

@@ -4,18 +4,34 @@
   <footer class="footer">
     <div class="container footer-content">
       <div class="footer-brand">
-        <span class="brand-icon">🏥</span>
-        <strong>MediPulse Clinic</strong>
-        <p class="footer-text">Production-quality Appointment Management System.</p>
+        <div class="footer-brand-title">
+          <div class="brand-icon-box" style="width: 32px; height: 32px;">
+            <i data-lucide="activity" style="width: 1.1em; height: 1.1em;"></i>
+          </div>
+          <strong>MediPulse Clinic</strong>
+        </div>
+        <p class="footer-text">Production-grade healthcare appointment scheduling platform engineered with atomic database locks and zero double-booking.</p>
       </div>
       <div class="footer-meta">
-        <p class="text-muted">Role-Based Access Control • MongoDB Compound Unique Locks • Server-Side Rendered EJS</p>
+        <p><strong>Security:</strong> Role-Based Access Control • Helmet Protection • Session Security</p>
+        <p><strong>Database:</strong> MongoDB Atlas • Partial Unique Index Engine Locks</p>
+        <p><strong>Stack:</strong> Node.js • Express • EJS Server-Side Rendering</p>
       </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; <%= new Date().getFullYear() %> MediPulse Clinic. All rights reserved.</p>
+      <p>Healthcare Appointment Management System</p>
     </div>
   </footer>
 
-  <!-- General UI Script -->
+  <!-- Lucide Icons Bundle -->
+  <script src="/js/lucide.min.js"></script>
   <script>
+    // Initialize all Lucide line icons
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+
     // Responsive Navbar Toggle
     const navToggle = document.getElementById('navToggle');
     const navMenu = document.getElementById('navMenu');

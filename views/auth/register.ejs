@@ -1,116 +1,174 @@
 <%- include('../partials/header', { title: 'Register - MediPulse Clinic' }) %>
 
-  <div class="auth-wrapper">
-    <div class="auth-card" style="max-width: 540px;">
-      <div class="auth-header">
-        <h1 class="auth-title">Create an Account</h1>
-        <p class="auth-subtitle">Join MediPulse Clinic for seamless appointment scheduling</p>
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width: 560px;">
+    <div class="auth-header">
+      <div class="brand-icon-box" style="margin: 0 auto 1rem auto;">
+        <i data-lucide="user-plus" class="icon-brand"></i>
+      </div>
+      <h1 class="auth-title">Create an Account</h1>
+      <p class="auth-subtitle">Join MediPulse Clinic for seamless healthcare appointment scheduling</p>
+    </div>
+
+    <form action="/auth/register" method="POST" class="auth-form" id="registerForm" novalidate>
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input 
+          type="text" 
+          id="name" 
+          name="name" 
+          class="form-control" 
+          placeholder="e.g. John Doe"
+          value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>" 
+          required
+        >
       </div>
 
-      <form action="/auth/register" method="POST" class="auth-form" id="registerForm" novalidate>
-        <div class="form-group">
-          <label for="name" class="form-label">Full Name</label>
-          <input type="text" id="name" name="name" class="form-control" placeholder="e.g. John Doe"
-            value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>" required>
-        </div>
-
-        <div class="form-group">
-          <label for="email" class="form-label">Email Address</label>
-          <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com"
-            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>" required>
-        </div>
-
-        <div class="form-group">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" id="password" name="password" class="form-control" placeholder="Minimum 6 characters"
-            required>
-          <span class="form-text">Must be at least 6 characters long.</span>
-        </div>
-
-        <div class="form-group">
-          <label for="role" class="form-label">Account Type</label>
-          <select id="role" name="role" class="form-control" onchange="toggleDoctorFields(this.value)">
-            <option value="patient" <%=typeof formData !=='undefined' && formData.role==='patient' ? 'selected' : '' %>
-              >Patient (Book Appointments)</option>
-            <option value="doctor" <%=typeof formData !=='undefined' && formData.role==='doctor' ? 'selected' : '' %>
-              >Doctor (Manage Clinic Appointments)</option>
-          </select>
-        </div>
-
-        <!-- Doctor-specific Profile Details -->
-        <div id="doctorFields"
-          style="display: <%= typeof formData !== 'undefined' && formData.role === 'doctor' ? 'block' : 'none' %>; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
-          <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--primary);">Doctor
-            Professional Profile</h3>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="specialization" class="form-label">Specialization</label>
-              <input type="text" id="specialization" name="specialization" class="form-control"
-                placeholder="e.g. Cardiologist, General Physician"
-                value="<%= typeof formData !== 'undefined' && formData.specialization ? formData.specialization : '' %>">
-            </div>
-
-            <div class="form-group">
-              <label for="qualification" class="form-label">Qualification</label>
-              <input type="text" id="qualification" name="qualification" class="form-control"
-                placeholder="e.g. MBBS, MD"
-                value="<%= typeof formData !== 'undefined' && formData.qualification ? formData.qualification : '' %>">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="experience" class="form-label">Experience (Years)</label>
-              <input type="number" id="experience" name="experience" class="form-control" min="0" placeholder="e.g. 8"
-                value="<%= typeof formData !== 'undefined' && formData.experience ? formData.experience : '' %>">
-            </div>
-
-            <div class="form-group">
-              <label for="consultationDuration" class="form-label">Slot Duration (Mins)</label>
-              <select id="consultationDuration" name="consultationDuration" class="form-control">
-                <option value="15">15 minutes</option>
-                <option value="30" selected>30 minutes (Standard)</option>
-                <option value="45">45 minutes</option>
-                <option value="60">60 minutes</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="availableStartTime" class="form-label">Working Hours Start</label>
-              <input type="time" id="availableStartTime" name="availableStartTime" class="form-control"
-                value="<%= typeof formData !== 'undefined' && formData.availableStartTime ? formData.availableStartTime : '09:00' %>">
-            </div>
-
-            <div class="form-group">
-              <label for="availableEndTime" class="form-label">Working Hours End</label>
-              <input type="time" id="availableEndTime" name="availableEndTime" class="form-control"
-                value="<%= typeof formData !== 'undefined' && formData.availableEndTime ? formData.availableEndTime : '17:00' %>">
-            </div>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">Register
-          Account</button>
-      </form>
-
-      <div class="auth-footer">
-        <p>Already have an account? <a href="/auth/login">Log In</a></p>
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          class="form-control" 
+          placeholder="name@example.com"
+          value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>" 
+          required
+        >
       </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          class="form-control" 
+          placeholder="Minimum 6 characters"
+          required
+        >
+        <span class="form-text">Must be at least 6 characters long.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="role" class="form-label">Account Type</label>
+        <select id="role" name="role" class="form-control" onchange="toggleDoctorFields(this.value)">
+          <option value="patient" <%= typeof formData !== 'undefined' && formData.role === 'patient' ? 'selected' : '' %>>
+            Patient (Book Consultations)
+          </option>
+          <option value="doctor" <%= typeof formData !== 'undefined' && formData.role === 'doctor' ? 'selected' : '' %>>
+            Doctor (Manage Clinic Appointments)
+          </option>
+        </select>
+      </div>
+
+      <!-- Doctor-specific Profile Details -->
+      <div 
+        id="doctorFields"
+        style="display: <%= typeof formData !== 'undefined' && formData.role === 'doctor' ? 'block' : 'none' %>; border-top: 1px solid var(--border-color); padding-top: 1.25rem; margin-top: 1.25rem;"
+      >
+        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 0.4rem;">
+          <i data-lucide="stethoscope" class="icon-sm"></i>
+          <span>Physician Professional Profile</span>
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="specialization" class="form-label">Specialization</label>
+            <input 
+              type="text" 
+              id="specialization" 
+              name="specialization" 
+              class="form-control"
+              placeholder="e.g. Cardiologist, Dermatologist"
+              value="<%= typeof formData !== 'undefined' && formData.specialization ? formData.specialization : '' %>"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="qualification" class="form-label">Qualification</label>
+            <input 
+              type="text" 
+              id="qualification" 
+              name="qualification" 
+              class="form-control"
+              placeholder="e.g. MBBS, MD, MS"
+              value="<%= typeof formData !== 'undefined' && formData.qualification ? formData.qualification : '' %>"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="experience" class="form-label">Experience (Years)</label>
+            <input 
+              type="number" 
+              id="experience" 
+              name="experience" 
+              class="form-control" 
+              min="0" 
+              placeholder="e.g. 8"
+              value="<%= typeof formData !== 'undefined' && formData.experience ? formData.experience : '' %>"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="consultationDuration" class="form-label">Slot Duration (Mins)</label>
+            <select id="consultationDuration" name="consultationDuration" class="form-control">
+              <option value="15">15 minutes</option>
+              <option value="30" selected>30 minutes (Standard)</option>
+              <option value="45">45 minutes</option>
+              <option value="60">60 minutes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="availableStartTime" class="form-label">Working Hours Start</label>
+            <input 
+              type="time" 
+              id="availableStartTime" 
+              name="availableStartTime" 
+              class="form-control"
+              value="<%= typeof formData !== 'undefined' && formData.availableStartTime ? formData.availableStartTime : '09:00' %>"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="availableEndTime" class="form-label">Working Hours End</label>
+            <input 
+              type="time" 
+              id="availableEndTime" 
+              name="availableEndTime" 
+              class="form-control"
+              value="<%= typeof formData !== 'undefined' && formData.availableEndTime ? formData.availableEndTime : '17:00' %>"
+            >
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1.25rem;">
+        <i data-lucide="user-check" class="icon-sm"></i>
+        <span>Register Account</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a href="/auth/login">Log In</a></p>
     </div>
   </div>
+</div>
 
-  <script>
-    function toggleDoctorFields(role) {
-      const fields = document.getElementById('doctorFields');
-      if (role === 'doctor') {
-        fields.style.display = 'block';
-      } else {
-        fields.style.display = 'none';
-      }
+<script>
+  function toggleDoctorFields(role) {
+    const fields = document.getElementById('doctorFields');
+    if (role === 'doctor') {
+      fields.style.display = 'block';
+    } else {
+      fields.style.display = 'none';
     }
-  </script>
+  }
+</script>
 
-  <%- include('../partials/footer') %>
+<%- include('../partials/footer') %>

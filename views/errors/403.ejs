@@ -5,17 +5,29 @@
     <div class="error-code">403</div>
     <h1 class="error-title">Access Denied</h1>
     <p class="error-description">
-      <%= typeof message !== 'undefined' ? message : 'You do not have authorization to access this healthcare dashboard or resource.' %>
+      <%= typeof message !== 'undefined' ? message : 'You do not have authorization to access this clinical dashboard or resource.' %>
     </p>
     <div class="error-actions">
-      <a href="/" class="btn btn-primary">Return Home</a>
+      <a href="/" class="btn btn-primary">
+        <i data-lucide="home" class="icon-sm"></i>
+        <span>Return Home</span>
+      </a>
       <% if (typeof currentUser !== 'undefined' && currentUser) { %>
         <% if (currentUser.role === 'patient') { %>
-          <a href="/patient/dashboard" class="btn btn-outline">Patient Dashboard</a>
+          <a href="/patient/dashboard" class="btn btn-outline">
+            <i data-lucide="layout-dashboard" class="icon-sm"></i>
+            <span>Patient Dashboard</span>
+          </a>
         <% } else if (currentUser.role === 'doctor') { %>
-          <a href="/doctor/dashboard" class="btn btn-outline">Doctor Dashboard</a>
+          <a href="/doctor/dashboard" class="btn btn-outline">
+            <i data-lucide="layout-dashboard" class="icon-sm"></i>
+            <span>Doctor Dashboard</span>
+          </a>
         <% } else if (currentUser.role === 'admin') { %>
-          <a href="/admin/dashboard" class="btn btn-outline">Admin Dashboard</a>
+          <a href="/admin/dashboard" class="btn btn-outline">
+            <i data-lucide="shield" class="icon-sm"></i>
+            <span>Admin Dashboard</span>
+          </a>
         <% } %>
       <% } %>
     </div>
